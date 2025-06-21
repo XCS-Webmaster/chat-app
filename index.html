@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Live Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer Chat</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -20,16 +21,7 @@
   </form>
 
   <audio id="notifySound" src="notify.mp3" preload="auto"></audio>
-
   <script src="/socket.io/socket.io.js"></script>
   <script src="client.js"></script>
-  <script>
-    try {
-      const theme = window.parent.document.body.classList.contains("dark") ? "dark" : "light";
-      document.body.classList.add(theme);
-    } catch {
-      document.body.classList.add("light");
-    }
-  </script>
 </body>
 </html>

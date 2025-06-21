@@ -2,21 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Admin Chat Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="light">
-
-  <h2>Support Admin Panel</h2>
-
+<body>
   <div id="visitorList"></div>
-  <p>Talking to: <span id="currentTarget">None</span></p>
 
   <ul id="messages"></ul>
 
   <div class="controls">
-    <label><input type="checkbox" id="muteToggle" /> Mute notifications</label>
-    <button id="downloadBtn">Download Chat</button>
+    <label><input type="checkbox" id="muteToggle" /> Mute</label>
+    <button id="downloadBtn">Download</button>
   </div>
 
   <form id="form" enctype="multipart/form-data">
@@ -26,7 +23,6 @@
   </form>
 
   <audio id="notifySound" src="notify.mp3" preload="auto"></audio>
-
   <script src="/socket.io/socket.io.js"></script>
   <script src="admin.js"></script>
 </body>
