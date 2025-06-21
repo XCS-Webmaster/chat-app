@@ -1,19 +1,19 @@
 const socket = io();
+
 const form = document.getElementById("form");
 const input = document.getElementById("input");
 const messages = document.getElementById("messages");
 
-form.addEventListener("submit", function (e) {
-  e.preventDefault(); // prevents page reload
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
   if (input.value) {
-    socket.emit("chat message", input.value);
+    socket.emit("visitor message", input.value);
     input.value = "";
   }
 });
 
-socket.on("chat message", function (msg) {
+socket.on("chat message", ({ from, text }) => {
   const item = document.createElement("li");
-  item.textContent = msg;
+  item.textContent = `${from}: ${text}`;
   messages.appendChild(item);
-  window.scrollTo(0, document.body.scrollHeight);
 });

@@ -3,6 +3,12 @@ body {
   margin: 0;
   padding: 0;
 }
+h2 {
+  background: #444;
+  color: white;
+  padding: 10px;
+  margin: 0;
+}
 form {
   background: #eee;
   padding: 10px;
@@ -22,4 +28,8 @@ ul {
   list-style: none;
   padding: 20px;
   margin-bottom: 60px;
+}
+#visitorList button {
+  display: block;
+  margin: 5px;
 }

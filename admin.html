@@ -2,17 +2,19 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Visitor Chat</title>
+  <title>Admin Panel</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h2>Talk to Support</h2>
+  <h2>Admin Chat Panel</h2>
+  <div id="visitorList"></div>
+  <p>Talking to: <span id="currentTarget">None</span></p>
   <ul id="messages"></ul>
   <form id="form" action="#">
-    <input id="input" autocomplete="off" placeholder="Type your message..." />
+    <input id="input" autocomplete="off" placeholder="Type your reply..." />
     <button>Send</button>
   </form>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="client.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>

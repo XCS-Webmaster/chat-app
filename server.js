@@ -13,15 +13,43 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-io.on("connection", (socket) => {
-  console.log("a user connected");
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "admin.html"));
+});
 
-  socket.on("chat message", (msg) => {
-    io.emit("chat message", msg);
+const users = new Map(); // key = socket.id, value = socket
+
+io.on("connection", (socket) => {
+  console.log(`New user: ${socket.id}`);
+
+  // Keep track of visitors
+  users.set(socket.id, socket);
+
+  // Let admin join "admin" room
+  socket.on("admin join", () => {
+    socket.join("admin");
+    console.log("Admin joined");
+  });
+
+  // Notify admin of a new visitor
+  socket.broadcast.to("admin").emit("new visitor", socket.id);
+
+  // Visitor sends message
+  socket.on("visitor message", (msg) => {
+    io.to("admin").emit("chat message", { from: socket.id, text: msg });
+  });
+
+  // Admin responds
+  socket.on("admin message", ({ to, text }) => {
+    const visitorSocket = users.get(to);
+    if (visitorSocket) {
+      visitorSocket.emit("chat message", { from: "admin", text });
+    }
   });
 
   socket.on("disconnect", () => {
-    console.log("user disconnected");
+    users.delete(socket.id);
+    console.log(`Disconnected: ${socket.id}`);
   });
 });
 
