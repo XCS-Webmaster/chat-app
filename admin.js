@@ -8,8 +8,9 @@ const currentTargetLabel = document.getElementById("currentTarget");
 const form = document.getElementById("form");
 const input = document.getElementById("input");
 const messages = document.getElementById("messages");
+const sound = document.getElementById("notifySound");
 
-// Handle new visitors joining
+// Handle new visitors
 socket.on("new visitor", (id) => {
   const btn = document.createElement("button");
   btn.textContent = `Talk to ${id}`;
@@ -29,20 +30,29 @@ socket.on("chat message", ({ from, text }) => {
   item.textContent = `${from}: ${text}`;
   messages.appendChild(item);
   window.scrollTo(0, document.body.scrollHeight);
+
+  // Play sound on incoming message
+  if (sound) {
+    sound.play().catch(err => {
+      console.warn("Sound blocked:", err);
+    });
+  }
 });
 
-// Handle admin form submission
+// Handle admin message submission
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   if (!currentTarget) {
     alert("Please select a visitor to reply to.");
     return;
   }
-  if (input.value.trim()) {
-    socket.emit("admin message", { to: currentTarget, text: input.value.trim() });
+
+  const msg = input.value.trim();
+  if (msg) {
+    socket.emit("admin message", { to: currentTarget, text: msg });
 
     const item = document.createElement("li");
-    item.textContent = `You → ${currentTarget}: ${input.value.trim()}`;
+    item.textContent = `You → ${currentTarget}: ${msg}`;
     messages.appendChild(item);
 
     input.value = "";

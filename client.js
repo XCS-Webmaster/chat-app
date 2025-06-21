@@ -3,6 +3,7 @@ const socket = io();
 const form = document.getElementById("form");
 const input = document.getElementById("input");
 const messages = document.getElementById("messages");
+const sound = document.getElementById("notifySound");
 
 // Handle visitor sending a message
 form.addEventListener("submit", function (e) {
@@ -27,4 +28,11 @@ socket.on("chat message", function ({ from, text }) {
   item.textContent = `${from}: ${text}`;
   messages.appendChild(item);
   window.scrollTo(0, document.body.scrollHeight);
+
+  // Play notification sound
+  if (sound) {
+    sound.play().catch(err => {
+      console.warn("Sound blocked:", err);
+    });
+  }
 });
