@@ -1,21 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Admin Panel</title>
+  <title>Admin Chat Panel</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h2>Admin Chat Panel</h2>
+  <h2>Support Admin Panel</h2>
+
   <div id="visitorList"></div>
   <p>Talking to: <span id="currentTarget">None</span></p>
+
   <ul id="messages"></ul>
+
   <form id="form" action="#">
     <input id="input" autocomplete="off" placeholder="Type your reply..." />
     <button>Send</button>
   </form>
+
+  <!-- Notification sound -->
+  <audio id="notifySound" src="notify.mp3" preload="auto"></audio>
+
   <script src="/socket.io/socket.io.js"></script>
   <script src="admin.js"></script>
-<audio id="notifySound" src="notify.mp3" preload="auto"></audio>
 </body>
 </html>

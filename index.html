@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Visitor Chat</title>
+  <title>Live Support Chat</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h2>Talk to Support</h2>
+  <h2>Chat with Support</h2>
+
   <ul id="messages"></ul>
+
   <form id="form" action="#">
     <input id="input" autocomplete="off" placeholder="Type your message..." />
     <button>Send</button>
   </form>
+
+  <!-- Notification sound -->
+  <audio id="notifySound" src="notify.mp3" preload="auto"></audio>
+
   <script src="/socket.io/socket.io.js"></script>
   <script src="client.js"></script>
-<audio id="notifySound" src="notify.mp3" preload="auto"></audio>
 </body>
 </html>
