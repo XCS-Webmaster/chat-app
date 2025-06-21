@@ -11,7 +11,7 @@ body.dark {
 }
 
 body {
-  font-family: Tahoma, sans-serif;
+  font-family: system-ui, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif;
   background: var(--bg);
   color: var(--text);
   margin: 0;
@@ -48,6 +48,14 @@ li.them {
 
 .avatar {
   margin: 0 8px;
+  text-align: center;
+}
+
+.avatar h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #666;
 }
 
 .avatar-img {
@@ -62,8 +70,9 @@ li.them {
   color: #000;
   padding: 10px 14px;
   border-radius: 10px;
-  line-height: 1.4;
   word-break: break-word;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .timestamp {
@@ -76,16 +85,16 @@ li.them {
 
 form {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   padding: 10px;
   background: var(--input-bg);
   border-top: 1px solid #ccc;
-  flex-wrap: wrap;
 }
 
 form > div {
-  flex: 1;
   display: flex;
+  flex: 1;
   gap: 6px;
 }
 
@@ -100,17 +109,18 @@ input[type="file"] {
   flex: none;
 }
 
-button {
+button, #micBtn, #emojiBtn {
   background-color: #3967d9;
   color: white;
   border: none;
   border-radius: 10px;
-  padding: 10px 16px;
+  padding: 10px 14px;
   cursor: pointer;
   font-weight: bold;
+  height: 44px;
 }
 
-button:hover {
+button:hover, #micBtn:hover, #emojiBtn:hover {
   background-color: #e52238;
 }
 
@@ -129,28 +139,30 @@ button:hover {
   padding: 8px 16px;
 }
 
-/* Responsive Design */
 @media screen and (max-width: 600px) {
   .avatar-img {
     width: 64px;
     height: 64px;
   }
 
-  li {
-    max-width: 95%;
-  }
-
   form {
     flex-direction: column;
+  }
+
+  form > div {
+    width: 100%;
+    flex-direction: row;
+  }
+
+  #micBtn, #emojiBtn {
+    width: 44px;
+    padding: 0;
+    font-size: 1.2rem;
   }
 
   .controls {
     flex-direction: column;
     gap: 6px;
-  }
-
-  #visitorList button {
-    flex: 1 1 100%;
   }
 
   form input[type="text"],
