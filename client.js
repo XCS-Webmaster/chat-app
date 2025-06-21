@@ -2,37 +2,88 @@ const socket = io();
 
 const form = document.getElementById("form");
 const input = document.getElementById("input");
+const fileInput = document.getElementById("fileInput");
 const messages = document.getElementById("messages");
 const sound = document.getElementById("notifySound");
+const muteToggle = document.getElementById("muteToggle");
+const downloadBtn = document.getElementById("downloadBtn");
 
-// Handle visitor sending a message
+let chatHistory = [];
+
 form.addEventListener("submit", function (e) {
   e.preventDefault();
   const msg = input.value.trim();
+  const file = fileInput.files[0];
+
   if (msg) {
-    // Emit to server
+    addMessage("You", msg, true);
     socket.emit("visitor message", msg);
-
-    // Show message locally
-    const item = document.createElement("li");
-    item.textContent = `You: ${msg}`;
-    messages.appendChild(item);
-    input.value = "";
-    window.scrollTo(0, document.body.scrollHeight);
   }
+
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      socket.emit("visitor file", {
+        name: file.name,
+        data: reader.result
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  input.value = "";
+  fileInput.value = "";
 });
 
-// Handle incoming messages from the admin
-socket.on("chat message", function ({ from, text }) {
-  const item = document.createElement("li");
-  item.textContent = `${from}: ${text}`;
-  messages.appendChild(item);
+socket.on("chat message", ({ from, text }) => {
+  addMessage(from, text, false);
+  notify();
+});
+
+socket.on("chat file", ({ from, name, data }) => {
+  const link = `<a href="${data}" download="${name}">${name}</a>`;
+  addMessage(from, `📎 ${link}`, false);
+  notify();
+});
+
+downloadBtn.addEventListener("click", () => {
+  const blob = new Blob([chatHistory.join("\n")], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "chat-history.txt";
+  a.click();
+});
+
+function addMessage(sender, content, isYou) {
+  const li = document.createElement("li");
+  li.className = isYou ? "you" : "them";
+
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = sender[0] || "?";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.innerHTML = content;
+
+  const time = document.createElement("div");
+  time.className = "timestamp";
+  time.textContent = new Date().toLocaleTimeString();
+
+  bubble.appendChild(time);
+  li.appendChild(avatar);
+  li.appendChild(bubble);
+  messages.appendChild(li);
+  chatHistory.push(`${sender}: ${stripTags(content)}`);
   window.scrollTo(0, document.body.scrollHeight);
+}
 
-  // Play notification sound
-  if (sound) {
-    sound.play().catch(err => {
-      console.warn("Sound blocked:", err);
-    });
+function notify() {
+  if (!muteToggle.checked && sound) {
+    sound.play().catch(() => {});
   }
-});
+}
+
+function stripTags(str) {
+  return str.replace(/<[^>]*>/g, "");
+}

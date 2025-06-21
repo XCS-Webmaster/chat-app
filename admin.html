@@ -5,7 +5,8 @@
   <title>Admin Chat Panel</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="light">
+
   <h2>Support Admin Panel</h2>
 
   <div id="visitorList"></div>
@@ -13,12 +14,17 @@
 
   <ul id="messages"></ul>
 
-  <form id="form" action="#">
-    <input id="input" autocomplete="off" placeholder="Type your reply..." />
-    <button>Send</button>
+  <div class="controls">
+    <label><input type="checkbox" id="muteToggle" /> Mute notifications</label>
+    <button id="downloadBtn">Download Chat</button>
+  </div>
+
+  <form id="form" enctype="multipart/form-data">
+    <input id="input" type="text" placeholder="Type your reply..." autocomplete="off" />
+    <input type="file" id="fileInput" />
+    <button type="submit">Send</button>
   </form>
 
-  <!-- Notification sound -->
   <audio id="notifySound" src="notify.mp3" preload="auto"></audio>
 
   <script src="/socket.io/socket.io.js"></script>

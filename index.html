@@ -5,17 +5,23 @@
   <title>Live Support Chat</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="light"> <!-- Add or remove "dark" for theme toggle -->
+
   <h2>Chat with Support</h2>
 
   <ul id="messages"></ul>
 
-  <form id="form" action="#">
-    <input id="input" autocomplete="off" placeholder="Type your message..." />
-    <button>Send</button>
+  <div class="controls">
+    <label><input type="checkbox" id="muteToggle" /> Mute notifications</label>
+    <button id="downloadBtn">Download Chat</button>
+  </div>
+
+  <form id="form" enctype="multipart/form-data">
+    <input id="input" type="text" placeholder="Type your message..." autocomplete="off" />
+    <input type="file" id="fileInput" />
+    <button type="submit">Send</button>
   </form>
 
-  <!-- Notification sound -->
   <audio id="notifySound" src="notify.mp3" preload="auto"></audio>
 
   <script src="/socket.io/socket.io.js"></script>
