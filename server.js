@@ -1,59 +1,62 @@
 const express = require("express");
 const http = require("http");
-const path = require("path");
-const socketIO = require("socket.io");
-
+const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server);
+const io = new Server(server);
 
+const path = require("path");
+
+// Serve static files (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname)));
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
+const PORT = process.env.PORT || 3000;
 
-app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "admin.html"));
-});
-
-const users = new Map(); // key = socket.id, value = socket
+// Track all customers and their sockets
+let customers = new Set();
 
 io.on("connection", (socket) => {
-  console.log(`New user: ${socket.id}`);
+  const isAdmin = socket.handshake.query?.admin === "true";
+  const socketId = socket.id;
 
-  // Keep track of visitors
-  users.set(socket.id, socket);
+  if (!isAdmin) {
+    // A new customer connected
+    customers.add(socketId);
+    io.emit("visitor list", Array.from(customers));
+  }
 
-  // Let admin join "admin" room
-  socket.on("admin join", () => {
-    socket.join("admin");
-    console.log("Admin joined");
+  // Admin joins a specific customer session
+  socket.on("admin join", (targetId) => {
+    socket.join(targetId); // Admin joins the customer's room
   });
 
-  // Notify admin of a new visitor
-  socket.broadcast.to("admin").emit("new visitor", socket.id);
-
-  // Visitor sends message
-  socket.on("visitor message", (msg) => {
-    io.to("admin").emit("chat message", { from: socket.id, text: msg });
+  // Customer sends message
+  socket.on("chat message", (data) => {
+    // Send to all admins who joined this socket ID room
+    io.to(socketId).emit("chat message", {
+      message: data.message,
+      file: data.file || null,
+      from: socketId,
+    });
   });
 
-  // Admin responds
-  socket.on("admin message", ({ to, text }) => {
-    const visitorSocket = users.get(to);
-    if (visitorSocket) {
-      visitorSocket.emit("chat message", { from: "admin", text });
-    }
+  // Admin sends message to selected visitor
+  socket.on("admin message", ({ target, message, file }) => {
+    io.to(target).emit("chat message", {
+      message,
+      file: file || null,
+    });
   });
 
+  // Remove customer on disconnect
   socket.on("disconnect", () => {
-    users.delete(socket.id);
-    console.log(`Disconnected: ${socket.id}`);
+    if (!isAdmin) {
+      customers.delete(socketId);
+      io.emit("visitor list", Array.from(customers));
+    }
   });
 });
 
-const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });

@@ -80,6 +80,13 @@ form {
   padding: 10px;
   background: var(--input-bg);
   border-top: 1px solid #ccc;
+  flex-wrap: wrap;
+}
+
+form > div {
+  flex: 1;
+  display: flex;
+  gap: 6px;
 }
 
 input[type="text"] {
@@ -112,6 +119,7 @@ button:hover {
   justify-content: space-between;
   align-items: center;
   padding: 0 16px 8px;
+  flex-wrap: wrap;
 }
 
 #visitorList {
@@ -121,7 +129,7 @@ button:hover {
   padding: 8px 16px;
 }
 
-/* Responsive adjustments */
+/* Responsive Design */
 @media screen and (max-width: 600px) {
   .avatar-img {
     width: 64px;
@@ -134,14 +142,6 @@ button:hover {
 
   form {
     flex-direction: column;
-    align-items: stretch;
-  }
-
-  form input[type="text"],
-  form input[type="file"],
-  form button {
-    width: 100%;
-    margin-top: 6px;
   }
 
   .controls {
@@ -151,5 +151,11 @@ button:hover {
 
   #visitorList button {
     flex: 1 1 100%;
+  }
+
+  form input[type="text"],
+  form input[type="file"],
+  form button {
+    width: 100%;
   }
 }
