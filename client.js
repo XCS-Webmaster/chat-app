@@ -4,7 +4,7 @@ const input = document.getElementById("input");
 const messages = document.getElementById("messages");
 
 form.addEventListener("submit", function (e) {
-  e.preventDefault();
+  e.preventDefault(); // prevents page reload
   if (input.value) {
     socket.emit("chat message", input.value);
     input.value = "";
