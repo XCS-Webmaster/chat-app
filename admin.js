@@ -1,116 +1,107 @@
 const socket = io();
-socket.emit("admin join");
-
-let currentTarget = null;
-
-const visitorList = document.getElementById("visitorList");
-const currentTargetLabel = document.getElementById("currentTarget");
 const form = document.getElementById("form");
 const input = document.getElementById("input");
 const fileInput = document.getElementById("fileInput");
 const messages = document.getElementById("messages");
-const sound = document.getElementById("notifySound");
+const notifySound = document.getElementById("notifySound");
 const muteToggle = document.getElementById("muteToggle");
 const downloadBtn = document.getElementById("downloadBtn");
 
-let chatHistory = [];
+const SUPPORT_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Support-Avatar.png";
+const CUSTOMER_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Customer-Avatar.png";
 
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const msg = input.value.trim();
-  const file = fileInput.files[0];
-
-  if (!currentTarget) {
-    alert("Please select a visitor.");
-    return;
+// 🔔 Notification handler
+function playNotification() {
+  if (!muteToggle.checked) {
+    notifySound.play();
   }
+}
 
-  if (msg) {
-    addMessage("Support", msg, true);
-    socket.emit("admin message", { to: currentTarget, text: msg });
-  }
-
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      socket.emit("admin file", {
-        to: currentTarget,
-        name: file.name,
-        data: reader.result
-      });
-    };
-    reader.readAsDataURL(file);
-  }
-
-  input.value = "";
-  fileInput.value = "";
-});
-
-socket.on("new visitor", (id) => {
-  const btn = document.createElement("button");
-  btn.textContent = `Talk to ${id}`;
-  btn.onclick = () => {
-    currentTarget = id;
-    currentTargetLabel.textContent = id;
-  };
-  visitorList.appendChild(btn);
-});
-
-socket.on("chat message", ({ from, text }) => {
-  addMessage("Customer", text, false);
-  notify();
-});
-
-socket.on("chat file", ({ from, name, data }) => {
-  const link = `<a href="${data}" download="${name}">${name}</a>`;
-  addMessage("Customer", `📎 ${link}`, false);
-  notify();
-});
-
-downloadBtn.addEventListener("click", () => {
-  const blob = new Blob([chatHistory.join("\n")], { type: "text/plain" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "chat-history.txt";
-  a.click();
-});
-
-function addMessage(sender, content, isYou) {
+// 💬 Add message to chat
+function addMessage(sender, text, isYou, timestamp, fileURL = null) {
   const li = document.createElement("li");
   li.className = isYou ? "you" : "them";
 
   const avatar = document.createElement("div");
   avatar.className = "avatar";
 
-  const nameDiv = document.createElement("div");
-  nameDiv.className = "name";
-  nameDiv.textContent = sender;
+  const img = document.createElement("img");
+  img.className = "avatar-img";
+  img.alt = sender + " avatar";
+  img.src = sender === "Support" ? SUPPORT_AVATAR : CUSTOMER_AVATAR;
 
-  avatar.appendChild(nameDiv);
+  avatar.appendChild(img);
+  li.appendChild(avatar);
 
-  const bubble = document.createElement("div");
-  bubble.className = "bubble";
-  bubble.innerHTML = content;
+  const msgDiv = document.createElement("div");
+  msgDiv.className = "bubble";
+  msgDiv.innerHTML = fileURL
+    ? `<a href="${fileURL}" target="_blank" rel="noopener noreferrer">${text}</a>`
+    : text;
+
+  li.appendChild(msgDiv);
 
   const time = document.createElement("div");
   time.className = "timestamp";
-  time.textContent = new Date().toLocaleTimeString();
+  time.textContent = timestamp;
+  li.appendChild(time);
 
-  bubble.appendChild(time);
-  li.appendChild(avatar);
-  li.appendChild(bubble);
   messages.appendChild(li);
-
-  chatHistory.push(`${sender}: ${stripTags(content)}`);
-  window.scrollTo(0, document.body.scrollHeight);
+  messages.scrollTop = messages.scrollHeight;
 }
 
-function notify() {
-  if (!muteToggle.checked && sound) {
-    sound.play().catch(() => {});
+// 🕓 Format timestamp
+function getTimestamp() {
+  const now = new Date();
+  return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+// 📤 Send message
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const message = input.value.trim();
+  const file = fileInput.files[0];
+
+  if (message || file) {
+    const timestamp = getTimestamp();
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        const fileURL = reader.result;
+        socket.emit("chat message", { message, file: fileURL });
+        addMessage("Support", message || "📎 File sent", true, timestamp, fileURL);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      socket.emit("chat message", { message });
+      addMessage("Support", message, true, timestamp);
+    }
+
+    input.value = "";
+    fileInput.value = "";
   }
-}
+});
 
-function stripTags(str) {
-  return str.replace(/<[^>]*>/g, "");
-}
+// 📥 Receive incoming customer message
+socket.on("chat message", (msg) => {
+  const timestamp = getTimestamp();
+  addMessage("Customer", msg.message, false, timestamp, msg.file || null);
+  playNotification();
+});
+
+// 📥 Download chat log
+downloadBtn.addEventListener("click", () => {
+  const logs = Array.from(messages.querySelectorAll("li")).map(li => {
+    const sender = li.classList.contains("you") ? "Support" : "Customer";
+    const text = li.querySelector(".bubble")?.textContent || "";
+    const time = li.querySelector(".timestamp")?.textContent || "";
+    return `[${time}] ${sender}: ${text}`;
+  });
+  const blob = new Blob([logs.join("\n")], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "support-chat-log.txt";
+  a.click();
+});
