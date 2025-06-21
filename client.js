@@ -16,7 +16,7 @@ form.addEventListener("submit", function (e) {
   const file = fileInput.files[0];
 
   if (msg) {
-    addMessage("You", msg, true);
+    addMessage("Customer", msg, true);
     socket.emit("visitor message", msg);
   }
 
@@ -36,13 +36,13 @@ form.addEventListener("submit", function (e) {
 });
 
 socket.on("chat message", ({ from, text }) => {
-  addMessage(from, text, false);
+  addMessage("Support", text, false);
   notify();
 });
 
 socket.on("chat file", ({ from, name, data }) => {
   const link = `<a href="${data}" download="${name}">${name}</a>`;
-  addMessage(from, `📎 ${link}`, false);
+  addMessage("Support", `📎 ${link}`, false);
   notify();
 });
 
@@ -60,7 +60,12 @@ function addMessage(sender, content, isYou) {
 
   const avatar = document.createElement("div");
   avatar.className = "avatar";
-  avatar.textContent = sender[0] || "?";
+
+  const nameDiv = document.createElement("div");
+  nameDiv.className = "name";
+  nameDiv.textContent = sender;
+
+  avatar.appendChild(nameDiv);
 
   const bubble = document.createElement("div");
   bubble.className = "bubble";
@@ -74,6 +79,7 @@ function addMessage(sender, content, isYou) {
   li.appendChild(avatar);
   li.appendChild(bubble);
   messages.appendChild(li);
+
   chatHistory.push(`${sender}: ${stripTags(content)}`);
   window.scrollTo(0, document.body.scrollHeight);
 }

@@ -26,7 +26,7 @@ form.addEventListener("submit", (e) => {
   }
 
   if (msg) {
-    addMessage("You", msg, true);
+    addMessage("Support", msg, true);
     socket.emit("admin message", { to: currentTarget, text: msg });
   }
 
@@ -57,13 +57,13 @@ socket.on("new visitor", (id) => {
 });
 
 socket.on("chat message", ({ from, text }) => {
-  addMessage(from, text, false);
+  addMessage("Customer", text, false);
   notify();
 });
 
 socket.on("chat file", ({ from, name, data }) => {
   const link = `<a href="${data}" download="${name}">${name}</a>`;
-  addMessage(from, `📎 ${link}`, false);
+  addMessage("Customer", `📎 ${link}`, false);
   notify();
 });
 
@@ -81,7 +81,12 @@ function addMessage(sender, content, isYou) {
 
   const avatar = document.createElement("div");
   avatar.className = "avatar";
-  avatar.textContent = sender[0] || "?";
+
+  const nameDiv = document.createElement("div");
+  nameDiv.className = "name";
+  nameDiv.textContent = sender;
+
+  avatar.appendChild(nameDiv);
 
   const bubble = document.createElement("div");
   bubble.className = "bubble";
@@ -95,6 +100,7 @@ function addMessage(sender, content, isYou) {
   li.appendChild(avatar);
   li.appendChild(bubble);
   messages.appendChild(li);
+
   chatHistory.push(`${sender}: ${stripTags(content)}`);
   window.scrollTo(0, document.body.scrollHeight);
 }

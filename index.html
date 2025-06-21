@@ -5,8 +5,7 @@
   <title>Live Support Chat</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="light"> <!-- Add or remove "dark" for theme toggle -->
-
+<body>
   <h2>Chat with Support</h2>
 
   <ul id="messages"></ul>
@@ -26,5 +25,13 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="client.js"></script>
+  <script>
+    try {
+      const theme = window.parent.document.body.classList.contains("dark") ? "dark" : "light";
+      document.body.classList.add(theme);
+    } catch {
+      document.body.classList.add("light");
+    }
+  </script>
 </body>
 </html>
