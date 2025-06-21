@@ -57,19 +57,19 @@ function addMessage(sender, text, isCustomer, timestamp, fileURL = null) {
   messages.scrollTop = messages.scrollHeight;
 }
 
-// 📨 Incoming message from Support
+// Receive message from support
 socket.on("chat message", (msg) => {
   const timestamp = getTimestamp();
   addMessage("Support", msg.message, false, timestamp, msg.file);
   playNotification();
 });
 
-// ✍️ Typing indicator (optional)
+// Typing indicator (optional UI can be added here)
 socket.on("typing", () => {
-  // You can add UI to show "Support is typing..." if you want
+  // Implement a "Support is typing..." UI if desired
 });
 
-// 📤 Send message
+// Submit message
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   const message = input.value.trim();
@@ -92,12 +92,12 @@ form.addEventListener("submit", (e) => {
   fileInput.value = "";
 });
 
-// ✍️ Emit typing signal
+// Typing feedback to admin
 input.addEventListener("input", () => {
   socket.emit("typing");
 });
 
-// 💾 Download chat log
+// Download chat
 downloadBtn.addEventListener("click", () => {
   const lines = [...messages.querySelectorAll("li")].map(li => {
     const who = li.classList.contains("you") ? "Customer" : "Support";
@@ -112,7 +112,7 @@ downloadBtn.addEventListener("click", () => {
   a.click();
 });
 
-// 🎤 Voice input
+// Voice input
 if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SR();
@@ -137,11 +137,12 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
   micBtn.style.display = "none";
 }
 
-// 😊 Emoji picker setup
+// Emoji picker
 const picker = new EmojiButton({
   theme: window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+  position: "bottom-center",
   autoHide: true,
-  zIndex: 1000
+  zIndex: 9999
 });
 
 emojiBtn.addEventListener("click", () => picker.togglePicker(emojiBtn));
@@ -151,7 +152,7 @@ picker.on("emoji", emoji => {
   input.focus();
 });
 
-// 🌙 Auto-apply dark mode
+// Dark mode
 if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
   document.body.classList.add("dark");
 }

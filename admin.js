@@ -47,9 +47,7 @@ function addMessage(sender, text, isSupport, timestamp, fileURL = null) {
 
   const bubble = document.createElement("div");
   bubble.className = "bubble";
-  bubble.innerHTML = fileURL
-    ? `<a href="${fileURL}" target="_blank">${text}</a>`
-    : text;
+  bubble.innerHTML = fileURL ? `<a href="${fileURL}" target="_blank">${text}</a>` : text;
 
   const time = document.createElement("div");
   time.className = "timestamp";
@@ -63,47 +61,58 @@ function addMessage(sender, text, isSupport, timestamp, fileURL = null) {
   messages.scrollTop = messages.scrollHeight;
 }
 
-// 👥 Visitor connections
+// 👥 Visitor list
 socket.on("visitor list", (visitors) => {
   visitorList.innerHTML = "";
   visitors.forEach((id) => {
+    const container = document.createElement("div");
+    container.className = "visitor-btn-group";
+
     const btn = document.createElement("button");
     btn.textContent = `Visitor ${id.slice(0, 6)}`;
+    btn.dataset.visitorId = id;
+
     btn.onclick = () => {
-      if (currentTarget) chatHistory[currentTarget] = messages.innerHTML;
+      if (currentTarget) {
+        chatHistory[currentTarget] = messages.innerHTML;
+        [...visitorList.querySelectorAll("button")].forEach(b => b.classList.remove("active"));
+      }
       currentTarget = id;
       messages.innerHTML = chatHistory[id] || "";
       socket.emit("admin join", id);
-      const alert = document.getElementById("alert-" + id);
+      btn.classList.add("active");
+
+      const alert = container.querySelector(".alert-badge");
       if (alert) alert.remove();
     };
-    visitorList.appendChild(btn);
+
+    container.appendChild(btn);
+    visitorList.appendChild(container);
   });
 });
 
-// 📨 Incoming chat message
+// 📨 Incoming message
 socket.on("chat message", (msg) => {
   const timestamp = getTimestamp();
   if (msg.from === currentTarget) {
     addMessage("Customer", msg.message, false, timestamp, msg.file);
     playNotification();
   } else {
-    if (!document.getElementById("alert-" + msg.from)) {
+    const container = [...visitorList.children].find(div => {
+      const b = div.querySelector("button");
+      return b && msg.from && b.dataset.visitorId === msg.from;
+    });
+    if (container && !container.querySelector(".alert-badge")) {
       const badge = document.createElement("div");
-      badge.id = "alert-" + msg.from;
-      badge.textContent = `🔔 New message`;
-      badge.style.fontSize = "0.8rem";
-      badge.style.color = "#e52238";
-      badge.style.marginTop = "4px";
-      badge.style.fontStyle = "italic";
-      const btn = [...visitorList.children].find(b => b.textContent.includes(msg.from.slice(0,6)));
-      if (btn) btn.appendChild(badge);
+      badge.className = "alert-badge";
+      badge.textContent = "🔔 New message";
+      container.appendChild(badge);
     }
     playNotification();
   }
 });
 
-// ✍️ Customer typing
+// ✍️ Typing feedback
 socket.on("typing", ({ from }) => {
   if (from === currentTarget && !typingIndicator) {
     typingIndicator = document.createElement("div");
@@ -121,7 +130,7 @@ socket.on("typing", ({ from }) => {
   }
 });
 
-// 📤 Admin sends message
+// 📤 Send message
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   if (!currentTarget) return alert("Choose a visitor first.");
@@ -193,8 +202,9 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
 // 😊 Emoji picker
 const picker = new EmojiButton({
   theme: window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+  position: "bottom-center",
   autoHide: true,
-  zIndex: 1000
+  zIndex: 9999
 });
 
 emojiBtn.addEventListener("click", () => picker.togglePicker(emojiBtn));
@@ -204,7 +214,7 @@ picker.on("emoji", emoji => {
   input.focus();
 });
 
-// 🌙 OS dark mode
+// 🌙 Auto dark mode
 if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
   document.body.classList.add("dark");
 }
