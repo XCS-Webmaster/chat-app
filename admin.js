@@ -14,7 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const CUSTOMER_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Customer-Avatar.png";
 
   let currentTarget = null;
-  const chatHistory = {};
+  const chatHistory = {};     // Stores an array of HTML strings per visitor
+  const alertIntervals = {};  // Stores each visitor's repeating alert interval
+  const firstMessageSound = document.getElementById("firstMessageSound");
 
   socket.on("connect", () => {
     document.body.classList.remove("loading");
@@ -26,11 +28,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
 
+  // Plays the standard incoming sound notification.
   function playNotification() {
     if (!muteToggle.checked) notifySound.play();
   }
 
-  function buildMessageHTML(who, text, isCustomer, timestamp, fileURL = null) {
+  // Plays the special first-message alert sound.
+  function playFirstMessageAlert() {
+    if (!muteToggle.checked && firstMessageSound) {
+      firstMessageSound.play();
+    }
+  }
+
+  // Build a message element with proper alignment.
+  // If isCustomer is true, the message will be aligned left; otherwise, right.
+  function buildMessageElement(who, text, isCustomer, timestamp, fileURL = null) {
     const li = document.createElement("li");
     li.className = isCustomer ? "customer" : "support";
 
@@ -42,6 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const img = document.createElement("img");
     img.className = "avatar-img";
+    // Use the appropriate avatar based on who is sending the message.
     img.src = isCustomer ? CUSTOMER_AVATAR : SUPPORT_AVATAR;
     img.alt = `${who} avatar`;
 
@@ -63,24 +76,34 @@ document.addEventListener("DOMContentLoaded", () => {
     return li;
   }
 
-  function addToHistory(visitorId, li) {
-    if (!chatHistory[visitorId]) chatHistory[visitorId] = [];
-    chatHistory[visitorId].push(li.outerHTML);
+  function addToHistory(visitorId, liElement) {
+    if (!chatHistory[visitorId]) {
+      chatHistory[visitorId] = [];
+    }
+    chatHistory[visitorId].push(liElement.outerHTML);
   }
 
+  // When receiving the visitor list,
+  // assign each button a label "Visitor 1", "Visitor 2", etc.
   socket.on("visitor list", (visitors) => {
     visitorList.innerHTML = "";
-    visitors.forEach((id) => {
+    visitors.forEach((id, index) => {
       const container = document.createElement("div");
       container.className = "visitor-btn-group";
 
       const btn = document.createElement("button");
-      btn.textContent = `Visitor ${id.slice(0, 6)}`;
+      btn.textContent = `Visitor ${index + 1}`;
       btn.dataset.visitorId = id;
 
       btn.onclick = () => {
         currentTarget = id;
         messages.innerHTML = (chatHistory[id] || []).join("");
+        // Clear any active alert (repeating sound) for this visitor.
+        if (alertIntervals[id]) {
+          clearInterval(alertIntervals[id]);
+          delete alertIntervals[id];
+        }
+        // Remove active and pulse classes from all visitor buttons.
         [...visitorList.querySelectorAll("button")].forEach(b => b.classList.remove("active", "pulse"));
         btn.classList.add("active");
         socket.emit("admin join", id);
@@ -91,9 +114,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // When a chat message arrives from a customer.
   socket.on("chat message", (msg) => {
     const timestamp = getTimestamp();
-    const li = buildMessageHTML("Customer", msg.message, true, timestamp, msg.file);
+    // Build the customer message element (always aligned left).
+    const li = buildMessageElement("Customer", msg.message, true, timestamp, msg.file);
     addToHistory(msg.from, li);
 
     if (msg.from === currentTarget) {
@@ -101,8 +126,20 @@ document.addEventListener("DOMContentLoaded", () => {
       messages.scrollTop = messages.scrollHeight;
       playNotification();
     } else {
+      // If the visitor is not currently selected, flash the corresponding button.
       const btn = visitorList.querySelector(`button[data-visitor-id="${msg.from}"]`);
-      if (btn && !btn.classList.contains("active")) btn.classList.add("pulse");
+      if (btn && !btn.classList.contains("active")) {
+        btn.classList.add("pulse");
+      }
+      // If this is the first message from this visitor, start the repeating alert.
+      if (chatHistory[msg.from].length === 1) {
+        if (!alertIntervals[msg.from]) {
+          playFirstMessageAlert(); // immediate play on first message
+          alertIntervals[msg.from] = setInterval(() => {
+            playFirstMessageAlert();
+          }, 6000);
+        }
+      }
     }
   });
 
@@ -119,6 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Handle admin sending messages (support messages will be aligned right).
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     if (!currentTarget) return alert("Choose a visitor first.");
@@ -131,7 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const reader = new FileReader();
       reader.onload = () => {
         socket.emit("admin message", { target: currentTarget, message, file: reader.result });
-        const li = buildMessageHTML("Support", message || "📎 File", false, timestamp, reader.result);
+        const li = buildMessageElement("Support", message || "📎 File", false, timestamp, reader.result);
         addToHistory(currentTarget, li);
         messages.appendChild(li);
         messages.scrollTop = messages.scrollHeight;
@@ -139,7 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
       reader.readAsDataURL(file);
     } else if (message) {
       socket.emit("admin message", { target: currentTarget, message });
-      const li = buildMessageHTML("Support", message, false, timestamp);
+      const li = buildMessageElement("Support", message, false, timestamp);
       addToHistory(currentTarget, li);
       messages.appendChild(li);
       messages.scrollTop = messages.scrollHeight;
