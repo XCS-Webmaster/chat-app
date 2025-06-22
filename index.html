@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Customer Chat</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@4/dist/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@4/dist/index.min.js" defer></script>
 </head>
 <body class="loading">
   <ul id="messages"></ul>
@@ -26,7 +26,11 @@
   </form>
 
   <audio id="notifySound" src="notify.mp3" preload="auto"></audio>
+
+  <div id="fallbackLoader" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 1.2rem; font-weight: bold; color: gray;">Loading chat…</div>
+
   <script src="/socket.io/socket.io.js"></script>
-  <script src="client.js"></script>
+  <script src="client.js" defer></script>
 </body>
 </html>
