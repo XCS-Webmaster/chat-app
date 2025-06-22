@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const downloadBtn = document.getElementById("downloadBtn");
   const visitorList = document.getElementById("visitorList");
   const micBtn = document.getElementById("micBtn");
-  const emojiBtn = document.getElementById("emojiBtn");
 
   const SUPPORT_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Support-Avatar.png";
   const CUSTOMER_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Customer-Avatar.png";
@@ -167,6 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
     a.click();
   });
 
+  // Voice input
   if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SR();
@@ -189,21 +189,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   } else {
     micBtn.style.display = "none";
-  }
-
-  const picker = new EmojiButton({
-    theme: window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
-    position: "bottom-center",
-    autoHide: true,
-    zIndex: 10000
-  });
-
-  if (emojiBtn) {
-    emojiBtn.addEventListener("click", () => picker.togglePicker(emojiBtn));
-    picker.on("emoji", emoji => {
-      input.value += emoji;
-      input.focus();
-    });
   }
 
   if (window.matchMedia("(prefers-color-scheme: dark)").matches) {

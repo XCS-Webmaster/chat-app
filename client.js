@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const isAdmin = location.pathname.includes("admin");
-  const socket = io({ query: { admin: isAdmin ? "true" : "false" } });
+  const socket = io();
 
   const form = document.getElementById("form");
   const input = document.getElementById("input");
@@ -10,10 +9,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const muteToggle = document.getElementById("muteToggle");
   const downloadBtn = document.getElementById("downloadBtn");
   const micBtn = document.getElementById("micBtn");
-  const emojiBtn = document.getElementById("emojiBtn");
+  const chatWrapper = document.body;
 
   const SUPPORT_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Support-Avatar.png";
   const CUSTOMER_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Customer-Avatar.png";
+
+  // Remove the loading state when socket connects
+  socket.on("connect", () => {
+    chatWrapper.classList.remove("loading");
+    const loader = document.getElementById("fallbackLoader");
+    if (loader) loader.style.display = "none";
+  });
 
   function getTimestamp() {
     return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -65,12 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
     playNotification();
   });
 
-  // Typing indicator
-  socket.on("typing", () => {
-    // Optional: implement UI if desired
-  });
-
-  // Submit message
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const message = input.value.trim();
@@ -93,12 +93,10 @@ document.addEventListener("DOMContentLoaded", () => {
     fileInput.value = "";
   });
 
-  // Emit typing signal
   input.addEventListener("input", () => {
     socket.emit("typing");
   });
 
-  // Download chat
   downloadBtn.addEventListener("click", () => {
     const lines = [...messages.querySelectorAll("li")].map(li => {
       const who = li.classList.contains("you") ? "Customer" : "Support";
@@ -138,24 +136,6 @@ document.addEventListener("DOMContentLoaded", () => {
     micBtn.style.display = "none";
   }
 
-  // Emoji picker
-  const picker = new EmojiButton({
-    theme: window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
-    position: "bottom-center",
-    autoHide: true,
-    zIndex: 9999
-  });
-
-  if (emojiBtn) {
-    emojiBtn.addEventListener("click", () => picker.togglePicker(emojiBtn));
-
-    picker.on("emoji", emoji => {
-      input.value += emoji;
-      input.focus();
-    });
-  }
-
-  // Dark mode
   if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
     document.body.classList.add("dark");
   }

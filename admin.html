@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Chat</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Load the global build so EmojiButton is available globally -->
-  <script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@4/dist/index.global.min.js" defer></script>
 </head>
 <body class="loading">
   <div id="visitorList"></div>
@@ -21,7 +19,6 @@
   <form id="form" enctype="multipart/form-data">
     <div>
       <input id="input" type="text" placeholder="Type your reply..." autocomplete="off" />
-      <button type="button" id="emojiBtn">😊</button>
       <button type="button" id="micBtn">🎤</button>
     </div>
     <input type="file" id="fileInput" />
@@ -30,8 +27,10 @@
 
   <audio id="notifySound" src="notify.mp3" preload="auto"></audio>
 
-  <div id="fallbackLoader" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    font-size: 1.2rem; font-weight: bold; color: gray;">Loading chat…</div>
+  <div id="fallbackLoader" style="position: fixed; top: 50%; left: 50%; 
+       transform: translate(-50%, -50%); font-size: 1.2rem; font-weight: bold; color: gray;">
+    Loading chat…
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="admin.js" defer></script>

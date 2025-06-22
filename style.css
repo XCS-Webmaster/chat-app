@@ -114,7 +114,7 @@ input[type="file"] {
   flex: none;
 }
 
-button, #micBtn, #emojiBtn {
+button, #micBtn {
   background-color: #3967d9;
   color: white;
   border: none;
@@ -126,7 +126,7 @@ button, #micBtn, #emojiBtn {
   transition: background-color 0.4s;
 }
 
-button:hover, #micBtn:hover, #emojiBtn:hover {
+button:hover, #micBtn:hover {
   background-color: #e52238;
 }
 
@@ -157,7 +157,7 @@ button:hover, #micBtn:hover, #emojiBtn:hover {
   font-weight: bold;
 }
 
-/* Flashing entire button for new message */
+/* Flashing entire button for new messages */
 @keyframes flashButton {
   0%   { background-color: #e52238; }
   50%  { background-color: #ffffff; color: #e52238; }
