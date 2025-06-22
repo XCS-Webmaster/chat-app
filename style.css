@@ -26,6 +26,7 @@ body {
   height: 100vh;
 }
 
+/* Message list (chat window) */
 ul {
   list-style: none;
   padding: 16px;
@@ -37,11 +38,12 @@ ul {
   gap: 12px;
 }
 
-/* Messages: customer left, support right */
+/* For all message items, no matter panel: 
+   - Customer messages use class "customer" and align left.
+   - Support messages use class "support" and align right.
+*/
 li {
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
   width: 100%;
 }
 li.customer {
@@ -49,10 +51,6 @@ li.customer {
 }
 li.support {
   justify-content: flex-end;
-}
-/* For support messages, add a class to force reverse order */
-li.support.support-reverse {
-  flex-direction: row-reverse;
 }
 
 .avatar {
@@ -74,7 +72,7 @@ li.support.support-reverse {
   object-fit: cover;
 }
 
-/* Bubble: normal wrapping, no timestamps */
+/* Chat bubble styling */
 .bubble {
   background-color: #e0e0e0;
   color: #000;
@@ -83,10 +81,11 @@ li.support.support-reverse {
   font-size: 1rem;
   line-height: 1.5;
   max-width: 65%;
-  white-space: normal;
   word-wrap: break-word;
+  white-space: normal;
 }
 
+/* Form styling */
 form {
   display: flex;
   flex-wrap: wrap;
@@ -95,27 +94,23 @@ form {
   background: var(--input-bg);
   border-top: 1px solid #ccc;
 }
-
 form > div {
   display: flex;
   flex: 1;
   gap: 6px;
 }
-
 input[type="text"] {
   flex: 1;
   padding: 10px;
   border-radius: 10px;
   border: 1px solid #ccc;
 }
-
 input[type="file"] {
   flex: none;
   align-self: center;
   margin-top: 4px;
   margin-bottom: 4px;
 }
-
 button {
   background-color: var(--primary-color);
   color: white;
@@ -127,22 +122,43 @@ button {
   height: 44px;
   transition: background-color 0.3s;
 }
-
 button:hover {
   background-color: var(--alert-color);
-}
-
-/* For mobile devices: force red on active tap */
-@media (pointer: coarse) {
-  button:active {
-    background-color: var(--alert-color) !important;
-  }
 }
 button:active,
 button:focus {
   background-color: var(--primary-color);
 }
 
+/* Visitor list styles (for admin panel) */
+#visitorList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 16px;
+}
+.visitor-btn-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#visitorList button.active {
+  background-color: var(--alert-color);
+  color: white;
+  font-weight: bold;
+}
+@keyframes flashButton {
+  0% { background-color: var(--alert-color); }
+  50% { background-color: #ffffff; color: var(--alert-color); }
+  100% { background-color: var(--alert-color); }
+}
+#visitorList button.pulse {
+  animation: flashButton 1.2s infinite;
+  font-weight: bold;
+  border: 2px solid var(--alert-color);
+}
+
+/* Controls */
 .controls {
   display: flex;
   justify-content: space-between;
@@ -150,7 +166,6 @@ button:focus {
   padding: 0 16px 8px;
   flex-wrap: nowrap;
 }
-
 #downloadBtn {
   white-space: nowrap;
 }
@@ -177,35 +192,4 @@ button:focus {
   button {
     width: 100%;
   }
-}
-
-#visitorList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 8px 16px;
-}
-
-.visitor-btn-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-#visitorList button.active {
-  background-color: var(--alert-color);
-  color: white;
-  font-weight: bold;
-}
-
-@keyframes flashButton {
-  0%   { background-color: var(--alert-color); }
-  50%  { background-color: #ffffff; color: var(--alert-color); }
-  100% { background-color: var(--alert-color); }
-}
-
-#visitorList button.pulse {
-  animation: flashButton 1.2s infinite;
-  font-weight: bold;
-  border: 2px solid var(--alert-color);
 }

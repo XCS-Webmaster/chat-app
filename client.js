@@ -28,9 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function buildMessageElement(who, text, isCustomer, fileURL = null) {
     const li = document.createElement("li");
     li.className = isCustomer ? "customer" : "support";
-    if (!isCustomer) {
-      li.classList.add("support-reverse");
-    }
     const avatar = document.createElement("div");
     avatar.className = "avatar";
     const label = document.createElement("h3");

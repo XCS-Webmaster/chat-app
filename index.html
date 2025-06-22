@@ -7,14 +7,12 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="loading">
-  <!-- Chat messages for the customer -->
+  <!-- Chat messages -->
   <ul id="messages"></ul>
-
   <div class="controls">
     <label><input type="checkbox" id="muteToggle" /> Mute</label>
     <button id="downloadBtn">Download</button>
   </div>
-
   <form id="form" enctype="multipart/form-data">
     <div>
       <input id="input" type="text" placeholder="Type your message..." autocomplete="off" />
@@ -22,14 +20,9 @@
     <input type="file" id="fileInput" />
     <button type="submit">Send</button>
   </form>
-
   <audio id="notifySound" src="notify.mp3" preload="auto"></audio>
-
-  <div id="fallbackLoader" style="position: fixed; top: 50%; left: 50%; 
-       transform: translate(-50%, -50%); font-size: 1.2rem; font-weight: bold; color: gray;">
-    Loading chat…
-  </div>
-
+  <div id="fallbackLoader" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+       font-size: 1.2rem; font-weight: bold; color: gray;">Loading chat…</div>
   <script src="/socket.io/socket.io.js"></script>
   <script src="client.js" defer></script>
 </body>
