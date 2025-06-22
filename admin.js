@@ -1,6 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
   const socket = io({ query: { admin: "true" } });
 
+  // Remove loading state when connected
+  socket.on("connect", () => {
+    document.body.classList.remove("loading");
+    const loader = document.getElementById("fallbackLoader");
+    if (loader) loader.style.display = "none";
+  });
+
   const form = document.getElementById("form");
   const input = document.getElementById("input");
   const fileInput = document.getElementById("fileInput");
@@ -166,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     a.click();
   });
 
-  // Voice input
+  // Voice input for admin
   if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SR();

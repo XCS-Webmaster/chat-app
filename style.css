@@ -130,6 +130,12 @@ button:hover, #micBtn:hover {
   background-color: #e52238;
 }
 
+/* Make the mic button a bit bigger */
+#micBtn {
+  font-size: 1.5rem;
+  height: 50px;
+}
+
 .controls {
   display: flex;
   justify-content: space-between;
