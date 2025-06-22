@@ -8,15 +8,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const notifySound = document.getElementById("notifySound");
   const muteToggle = document.getElementById("muteToggle");
   const downloadBtn = document.getElementById("downloadBtn");
-  const micBtn = document.getElementById("micBtn");
-  const chatWrapper = document.body;
+  const wrapper = document.body;
 
   const SUPPORT_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Support-Avatar.png";
   const CUSTOMER_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Customer-Avatar.png";
 
-  // Remove the loading state when socket connects
   socket.on("connect", () => {
-    chatWrapper.classList.remove("loading");
+    wrapper.classList.remove("loading");
     const loader = document.getElementById("fallbackLoader");
     if (loader) loader.style.display = "none";
   });
@@ -31,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function addMessage(sender, text, isCustomer, timestamp, fileURL = null) {
     const li = document.createElement("li");
-    li.className = isCustomer ? "you" : "them";
+    li.className = isCustomer ? "customer" : "support";
 
     const avatar = document.createElement("div");
     avatar.className = "avatar";
@@ -49,9 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const bubble = document.createElement("div");
     bubble.className = "bubble";
-    bubble.innerHTML = fileURL
-      ? `<a href="${fileURL}" target="_blank">${text}</a>`
-      : text;
+    bubble.innerHTML = fileURL ? `<a href="${fileURL}" target="_blank">${text}</a>` : text;
 
     const time = document.createElement("div");
     time.className = "timestamp";
@@ -64,7 +60,6 @@ document.addEventListener("DOMContentLoaded", () => {
     messages.scrollTop = messages.scrollHeight;
   }
 
-  // Receive message from support
   socket.on("chat message", (msg) => {
     const timestamp = getTimestamp();
     addMessage("Support", msg.message, false, timestamp, msg.file);
@@ -99,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   downloadBtn.addEventListener("click", () => {
     const lines = [...messages.querySelectorAll("li")].map(li => {
-      const who = li.classList.contains("you") ? "Customer" : "Support";
+      const who = li.classList.contains("customer") ? "Customer" : "Support";
       const text = li.querySelector(".bubble")?.textContent || "";
       const time = li.querySelector(".timestamp")?.textContent || "";
       return `[${time}] ${who}: ${text}`;
@@ -110,31 +105,6 @@ document.addEventListener("DOMContentLoaded", () => {
     a.download = "chat-log.txt";
     a.click();
   });
-
-  // Voice input
-  if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SR();
-    recognition.lang = "en-US";
-    recognition.continuous = false;
-    recognition.interimResults = false;
-
-    micBtn.addEventListener("click", () => {
-      recognition.start();
-      micBtn.textContent = "🎙️";
-    });
-
-    recognition.onresult = (event) => {
-      input.value += event.results[0][0].transcript;
-      micBtn.textContent = "🎤";
-    };
-
-    recognition.onerror = () => {
-      micBtn.textContent = "🎤";
-    };
-  } else {
-    micBtn.style.display = "none";
-  }
 
   if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
     document.body.classList.add("dark");

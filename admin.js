@@ -1,13 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const socket = io({ query: { admin: "true" } });
 
-  // Remove loading state when connected
-  socket.on("connect", () => {
-    document.body.classList.remove("loading");
-    const loader = document.getElementById("fallbackLoader");
-    if (loader) loader.style.display = "none";
-  });
-
   const form = document.getElementById("form");
   const input = document.getElementById("input");
   const fileInput = document.getElementById("fileInput");
@@ -16,14 +9,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const muteToggle = document.getElementById("muteToggle");
   const downloadBtn = document.getElementById("downloadBtn");
   const visitorList = document.getElementById("visitorList");
-  const micBtn = document.getElementById("micBtn");
 
   const SUPPORT_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Support-Avatar.png";
   const CUSTOMER_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Customer-Avatar.png";
 
   let currentTarget = null;
   const chatHistory = {};
-  let typingIndicator = null;
+
+  socket.on("connect", () => {
+    document.body.classList.remove("loading");
+    const loader = document.getElementById("fallbackLoader");
+    if (loader) loader.style.display = "none";
+  });
 
   function getTimestamp() {
     return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -33,19 +30,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!muteToggle.checked) notifySound.play();
   }
 
-  function addMessage(sender, text, isSupport, timestamp, fileURL = null) {
+  function renderMessageHTML(sender, text, isCustomer, timestamp, fileURL = null) {
     const li = document.createElement("li");
-    li.className = isSupport ? "you" : "them";
+    li.className = isCustomer ? "customer" : "support";
 
     const avatar = document.createElement("div");
     avatar.className = "avatar";
 
     const label = document.createElement("h3");
-    label.textContent = isSupport ? "Support" : "Customer";
+    label.textContent = isCustomer ? "Customer" : "Support";
 
     const img = document.createElement("img");
     img.className = "avatar-img";
-    img.src = isSupport ? SUPPORT_AVATAR : CUSTOMER_AVATAR;
+    img.src = isCustomer ? CUSTOMER_AVATAR : SUPPORT_AVATAR;
     img.alt = `${label.textContent} avatar`;
 
     avatar.appendChild(label);
@@ -63,8 +60,18 @@ document.addEventListener("DOMContentLoaded", () => {
     li.appendChild(bubble);
     li.appendChild(time);
 
-    messages.appendChild(li);
-    messages.scrollTop = messages.scrollHeight;
+    return li;
+  }
+
+  function appendMessage(visitorId, sender, text, isCustomer, timestamp, fileURL = null) {
+    const li = renderMessageHTML(sender, text, isCustomer, timestamp, fileURL);
+    if (!chatHistory[visitorId]) chatHistory[visitorId] = [];
+    chatHistory[visitorId].push(li.outerHTML);
+    if (visitorId === currentTarget) {
+      messages.appendChild(li);
+      messages.scrollTop = messages.scrollHeight;
+      if (isCustomer) playNotification();
+    }
   }
 
   socket.on("visitor list", (visitors) => {
@@ -78,15 +85,11 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.dataset.visitorId = id;
 
       btn.onclick = () => {
-        if (currentTarget) {
-          chatHistory[currentTarget] = messages.innerHTML;
-          [...visitorList.querySelectorAll("button")].forEach(b => b.classList.remove("active"));
-        }
         currentTarget = id;
-        messages.innerHTML = chatHistory[id] || "";
-        socket.emit("admin join", id);
+        messages.innerHTML = (chatHistory[id] || []).join("");
+        [...visitorList.querySelectorAll("button")].forEach(b => b.classList.remove("active", "pulse"));
         btn.classList.add("active");
-        btn.classList.remove("pulse");
+        socket.emit("admin join", id);
       };
 
       container.appendChild(btn);
@@ -96,38 +99,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
   socket.on("chat message", (msg) => {
     const timestamp = getTimestamp();
-    if (msg.from === currentTarget) {
-      addMessage("Customer", msg.message, false, timestamp, msg.file);
-      playNotification();
-    } else {
-      const container = [...visitorList.children].find(div => {
-        const b = div.querySelector("button");
-        return b && msg.from && b.dataset.visitorId === msg.from;
-      });
-      if (container) {
-        const btn = container.querySelector("button");
-        if (btn && !btn.classList.contains("active")) {
-          btn.classList.add("pulse");
-        }
+    appendMessage(msg.from, "Customer", msg.message, true, timestamp, msg.file);
+
+    const container = [...visitorList.children].find(div => {
+      const b = div.querySelector("button");
+      return b && msg.from && b.dataset.visitorId === msg.from;
+    });
+    if (container) {
+      const btn = container.querySelector("button");
+      if (btn && msg.from !== currentTarget) {
+        btn.classList.add("pulse");
       }
-      playNotification();
     }
   });
 
   socket.on("typing", ({ from }) => {
-    if (from === currentTarget && !typingIndicator) {
-      typingIndicator = document.createElement("div");
-      typingIndicator.textContent = "Customer is typing...";
-      typingIndicator.style.fontStyle = "italic";
-      typingIndicator.style.fontSize = "0.85rem";
-      typingIndicator.style.padding = "0 16px 8px";
-      messages.appendChild(typingIndicator);
+    if (from === currentTarget) {
+      const typing = document.createElement("div");
+      typing.textContent = "Customer is typing...";
+      typing.style.fontStyle = "italic";
+      typing.style.fontSize = "0.85rem";
+      typing.style.padding = "0 16px 8px";
+      messages.appendChild(typing);
       messages.scrollTop = messages.scrollHeight;
-
       setTimeout(() => {
-        if (typingIndicator?.parentNode) typingIndicator.remove();
-        typingIndicator = null;
-      }, 2000);
+        typing.remove();
+      }, 1500);
     }
   });
 
@@ -137,68 +134,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const message = input.value.trim();
     const file = fileInput.files[0];
-    const timestamp = getTimestamp();
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        socket.emit("admin message", {
-          target: currentTarget,
-          message,
-          file: reader.result
-        });
-        addMessage("Support", message || "📎 File", true, timestamp, reader.result);
-      };
-      reader.readAsDataURL(file);
-    } else if (message) {
-      socket.emit("admin message", { target: currentTarget, message });
-      addMessage("Support", message, true, timestamp);
-    }
-
-    input.value = "";
-    fileInput.value = "";
-  });
-
-  downloadBtn.addEventListener("click", () => {
-    const lines = [...messages.querySelectorAll("li")].map(li => {
-      const who = li.classList.contains("you") ? "Support" : "Customer";
-      const text = li.querySelector(".bubble")?.textContent || "";
-      const time = li.querySelector(".timestamp")?.textContent || "";
-      return `[${time}] ${who}: ${text}`;
-    });
-    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "admin-chat-log.txt";
-    a.click();
-  });
-
-  // Voice input for admin
-  if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SR();
-    recognition.lang = "en-US";
-    recognition.continuous = false;
-    recognition.interimResults = false;
-
-    micBtn.addEventListener("click", () => {
-      recognition.start();
-      micBtn.textContent = "🎙️";
-    });
-
-    recognition.onresult = (event) => {
-      input.value += event.results[0][0].transcript;
-      micBtn.textContent = "🎤";
-    };
-
-    recognition.onerror = () => {
-      micBtn.textContent = "🎤";
-    };
-  } else {
-    micBtn.style.display = "none";
-  }
-
-  if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    document.body.classList.add("dark");
-  }
-});

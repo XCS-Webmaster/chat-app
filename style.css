@@ -2,6 +2,8 @@
   --bg: #ffffff;
   --text: #000000;
   --input-bg: #f0f0f0;
+  --primary-color: #3967d9;
+  --alert-color: #e52238;
 }
 
 body.dark {
@@ -35,6 +37,7 @@ ul {
   gap: 12px;
 }
 
+/* Proper alignment of bubbles */
 li {
   display: flex;
   flex-direction: row;
@@ -42,12 +45,12 @@ li {
   width: 100%;
 }
 
-li.you {
-  justify-content: flex-end;
+li.customer {
+  justify-content: flex-start;
 }
 
-li.them {
-  justify-content: flex-start;
+li.support {
+  justify-content: flex-end;
 }
 
 .avatar {
@@ -114,8 +117,8 @@ input[type="file"] {
   flex: none;
 }
 
-button, #micBtn {
-  background-color: #3967d9;
+button {
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 10px;
@@ -123,17 +126,16 @@ button, #micBtn {
   cursor: pointer;
   font-weight: bold;
   height: 44px;
-  transition: background-color 0.4s;
+  transition: background-color 0.3s;
 }
 
-button:hover, #micBtn:hover {
-  background-color: #e52238;
+button:hover {
+  background-color: var(--alert-color);
 }
 
-/* Make the mic button a bit bigger */
-#micBtn {
-  font-size: 1.5rem;
-  height: 50px;
+button:active,
+button:focus {
+  background-color: var(--primary-color);
 }
 
 .controls {
@@ -141,7 +143,29 @@ button:hover, #micBtn:hover {
   justify-content: space-between;
   align-items: center;
   padding: 0 16px 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+@media screen and (max-width: 600px) {
+  .controls {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  form {
+    flex-direction: column;
+  }
+
+  form > div {
+    width: 100%;
+    flex-direction: row;
+  }
+
+  input[type="text"],
+  input[type="file"],
+  button {
+    width: 100%;
+  }
 }
 
 #visitorList {
@@ -158,42 +182,20 @@ button:hover, #micBtn:hover {
 }
 
 #visitorList button.active {
-  background-color: #e52238;
+  background-color: var(--alert-color);
   color: white;
   font-weight: bold;
 }
 
-/* Flashing entire button for new messages */
+/* Flashing animation for new messages */
 @keyframes flashButton {
-  0%   { background-color: #e52238; }
-  50%  { background-color: #ffffff; color: #e52238; }
-  100% { background-color: #e52238; }
+  0%   { background-color: var(--alert-color); }
+  50%  { background-color: #ffffff; color: var(--alert-color); }
+  100% { background-color: var(--alert-color); }
 }
 
 #visitorList button.pulse {
   animation: flashButton 1.2s infinite;
   font-weight: bold;
-  border: 2px solid #e52238;
-}
-
-@media screen and (max-width: 600px) {
-  form {
-    flex-direction: column;
-  }
-
-  form > div {
-    width: 100%;
-    flex-direction: row;
-  }
-
-  .controls {
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  form input[type="text"],
-  form input[type="file"],
-  form button {
-    width: 100%;
-  }
+  border: 2px solid var(--alert-color);
 }
