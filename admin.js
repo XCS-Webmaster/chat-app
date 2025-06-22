@@ -14,9 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const CUSTOMER_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Customer-Avatar.png";
   
   let currentTarget = null;
-  // Stores chat history for each visitor ID (as an array of HTML strings)
+  // chatHistory stores an array of HTML strings per visitor (by ID)
   const chatHistory = {};
-  // Stores the repeating alert interval for each visitor
+  // alertIntervals holds setInterval IDs for visitors having a pending first-message alert
   const alertIntervals = {};
   const firstMessageSound = document.getElementById("firstMessageSound");
   
@@ -36,19 +36,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   
-  // Play the special first-message alert sound.
+  // Plays the special first-message alert sound.
   function playFirstMessageAlert() {
     if (!muteToggle.checked && firstMessageSound) {
       firstMessageSound.play();
     }
   }
   
-  // Constructs a message element with proper alignment.
-  // isCustomer = true implies a customer message (left aligned),
-  // isCustomer = false implies a support message (right aligned).
+  // Build a message element.
+  // If isCustomer is true, the message is considered from the customer (left aligned).
+  // If false, it’s from support (right aligned, with reversed element order).
   function buildMessageElement(who, text, isCustomer, timestamp, fileURL = null) {
     const li = document.createElement("li");
+    // Set the class so that CSS can align appropriately.
     li.className = isCustomer ? "customer" : "support";
+    // For support messages, reverse the order (avatar on right)
+    if (!isCustomer) {
+      li.style.flexDirection = "row-reverse";
+    }
     
     const avatar = document.createElement("div");
     avatar.className = "avatar";
@@ -79,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return li;
   }
   
-  // Append a message element to the chat history for a given visitor.
+  // Append the given element's HTML to the chat history of a visitor.
   function addToHistory(visitorId, liElement) {
     if (!chatHistory[visitorId]) {
       chatHistory[visitorId] = [];
@@ -87,14 +92,14 @@ document.addEventListener("DOMContentLoaded", () => {
     chatHistory[visitorId].push(liElement.outerHTML);
   }
   
-  // Ensure a visitor tab exists; if not, create it using a sequential "Visitor N" label.
+  // Makes sure there’s a visitor tab for a given visitor ID.
   function updateVisitorTab(visitorId) {
     let btn = visitorList.querySelector(`button[data-visitor-id="${visitorId}"]`);
     if (!btn) {
       const container = document.createElement("div");
       container.className = "visitor-btn-group";
   
-      // Derive a sequential label based on the current count.
+      // Use the current count to label visitors sequentially.
       const currentCount = visitorList.querySelectorAll("button").length;
       btn = document.createElement("button");
       btn.textContent = `Visitor ${currentCount + 1}`;
@@ -103,10 +108,12 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.onclick = () => {
         currentTarget = visitorId;
         messages.innerHTML = (chatHistory[visitorId] || []).join("");
+        // Clear the repeating alert, if any.
         if (alertIntervals[visitorId]) {
           clearInterval(alertIntervals[visitorId]);
           delete alertIntervals[visitorId];
         }
+        // Remove active and pulse classes from all tabs.
         [...visitorList.querySelectorAll("button")].forEach(b => b.classList.remove("active", "pulse"));
         btn.classList.add("active");
         socket.emit("admin join", visitorId);
@@ -117,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   
-  // Rebuild the visitor list when the server sends an updated list.
+  // When the server sends an updated visitor list, rebuild the entire visitor tab list.
   socket.on("visitor list", (visitors) => {
     visitorList.innerHTML = "";
     visitors.forEach((visitorId, index) => {
@@ -145,26 +152,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
   
-  // Handle incoming chat messages (customer messages)
+  // Process incoming chat messages.
   socket.on("chat message", (msg) => {
+    // Only process messages that have a valid 'from' property (assumed to be customer messages).
+    if (!msg.from || msg.from === "support") return;
+  
     const timestamp = getTimestamp();
     // Build a left-aligned customer message.
     const li = buildMessageElement("Customer", msg.message, true, timestamp, msg.file);
     addToHistory(msg.from, li);
   
-    // Ensure the visitor tab exists.
+    // Ensure this visitor tab exists.
     updateVisitorTab(msg.from);
   
+    // If the admin currently has this visitor selected, append the message.
     if (msg.from === currentTarget) {
       messages.appendChild(li);
       messages.scrollTop = messages.scrollHeight;
       playNotification();
     } else {
+      // Otherwise, add a visual pulse to the visitor tab.
       const btn = visitorList.querySelector(`button[data-visitor-id="${msg.from}"]`);
       if (btn && !btn.classList.contains("active")) {
         btn.classList.add("pulse");
       }
-      // If this is the first message from the visitor, start the repeating alert.
+      // If this is the visitor's first message, start the repeating first-message alert.
       if (chatHistory[msg.from].length === 1) {
         if (!alertIntervals[msg.from]) {
           playFirstMessageAlert(); // play immediately
@@ -176,7 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
   
-  // Typing indicator (if the server sends a typing event)
+  // Handle typing notifications.
   socket.on("typing", ({ from }) => {
     if (from === currentTarget) {
       const typing = document.createElement("div");
@@ -190,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
   
-  // Handle admin sending a support message (right-aligned)
+  // When admin sends a support message, process it locally.
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     if (!currentTarget) return alert("Choose a visitor first.");
