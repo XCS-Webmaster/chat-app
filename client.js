@@ -18,20 +18,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (loader) loader.style.display = "none";
   });
 
-  function getTimestamp() {
-    return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  }
-
   function playNotification() {
     if (!muteToggle.checked && notifySound) {
       notifySound.play();
     }
   }
 
-  function buildMessageElement(who, text, isCustomer, timestamp, fileURL = null) {
+  function buildMessageElement(who, text, isCustomer, fileURL = null) {
     const li = document.createElement("li");
     li.className = isCustomer ? "customer" : "support";
-    // Reverse support messages so the avatar appears on the right.
     if (!isCustomer) {
       li.style.flexDirection = "row-reverse";
     }
@@ -50,25 +45,20 @@ document.addEventListener("DOMContentLoaded", () => {
     bubble.style.whiteSpace = "normal";
     bubble.style.wordWrap = "break-word";
     bubble.innerHTML = fileURL ? `<a href="${fileURL}" target="_blank">${text}</a>` : text;
-    const timeDiv = document.createElement("div");
-    timeDiv.className = "timestamp";
-    timeDiv.textContent = timestamp;
     li.appendChild(avatar);
     li.appendChild(bubble);
-    li.appendChild(timeDiv);
     return li;
   }
 
-  function addMessage(sender, text, isCustomer, timestamp, fileURL = null) {
-    const li = buildMessageElement(sender, text, isCustomer, timestamp, fileURL);
+  function addMessage(sender, text, isCustomer, fileURL = null) {
+    const li = buildMessageElement(sender, text, isCustomer, fileURL);
     messages.appendChild(li);
     messages.scrollTop = messages.scrollHeight;
   }
 
   socket.on("chat message", (msg) => {
-    // Here, support messages (sent by admin) arrive to the customer.
-    const timestamp = getTimestamp();
-    addMessage("Support", msg.message, false, timestamp, msg.file);
+    // Support message arriving to the customer.
+    addMessage("Support", msg.message, false, msg.file);
     playNotification();
   });
 
@@ -76,17 +66,16 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const message = input.value.trim();
     const file = fileInput.files[0];
-    const timestamp = getTimestamp();
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
         socket.emit("chat message", { message, file: reader.result });
-        addMessage("Customer", message || "📎 File", true, timestamp, reader.result);
+        addMessage("Customer", message || "📎 File", true, reader.result);
       };
       reader.readAsDataURL(file);
     } else if (message) {
       socket.emit("chat message", { message });
-      addMessage("Customer", message, true, timestamp);
+      addMessage("Customer", message, true);
     }
     input.value = "";
     fileInput.value = "";
@@ -100,8 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const lines = Array.from(messages.querySelectorAll("li")).map(li => {
       const who = li.classList.contains("customer") ? "Customer" : "Support";
       const text = li.querySelector(".bubble")?.textContent || "";
-      const time = li.querySelector(".timestamp")?.textContent || "";
-      return `[${time}] ${who}: ${text}`;
+      return `${who}: ${text}`;
     });
     const blob = new Blob([lines.join("\n")], { type: "text/plain" });
     const a = document.createElement("a");

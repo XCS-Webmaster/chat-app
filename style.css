@@ -72,6 +72,7 @@ li.support {
   object-fit: cover;
 }
 
+/* Bubble with normal wrapping */
 .bubble {
   background-color: #e0e0e0;
   color: #000;
@@ -84,14 +85,8 @@ li.support {
   word-wrap: break-word;
 }
 
-.timestamp {
-  font-size: 0.75rem;
-  color: #555;
-  margin-top: 4px;
-  text-align: right;
-  width: 100%;
-}
-
+/* No timestamp styling since they are removed */
+ 
 form {
   display: flex;
   flex-wrap: wrap;

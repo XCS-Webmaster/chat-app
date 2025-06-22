@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Connect as admin and request immediate visitor list
+  // Connect as admin and immediately request the visitor list.
   const socket = io({ query: { admin: "true" } });
   socket.emit("request visitors");
 
@@ -28,17 +28,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (loader) loader.style.display = "none";
   });
 
-  function getTimestamp() {
-    return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  }
-
   function playNotification() {
     if (!muteToggle.checked && notifySound) {
       notifySound.play();
     }
   }
 
-  // Play special alert (first-message sound).
+  // Play the special first-message alert sound.
   function playFirstMessageAlert() {
     if (!muteToggle.checked && firstMessageSound) {
       firstMessageSound.play();
@@ -47,24 +43,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Build a message element.
   // isCustomer === true → customer message (left aligned).
-  // Otherwise, support message (right aligned with reversed order).
-  function buildMessageElement(who, text, isCustomer, timestamp, fileURL = null) {
+  // Otherwise, it's a support message (right aligned with reversed order).
+  // Note: Date/time stamps have been removed.
+  function buildMessageElement(who, text, isCustomer, fileURL = null) {
     const li = document.createElement("li");
     li.className = isCustomer ? "customer" : "support";
     if (!isCustomer) {
       li.style.flexDirection = "row-reverse"; // reverse for support messages
     }
+
     const avatar = document.createElement("div");
     avatar.className = "avatar";
-
     const label = document.createElement("h3");
     label.textContent = who;
-
     const img = document.createElement("img");
     img.className = "avatar-img";
     img.src = isCustomer ? CUSTOMER_AVATAR : SUPPORT_AVATAR;
     img.alt = `${who} avatar`;
-
     avatar.appendChild(label);
     avatar.appendChild(img);
 
@@ -74,14 +69,8 @@ document.addEventListener("DOMContentLoaded", () => {
     bubble.style.wordWrap = "break-word";
     bubble.innerHTML = fileURL ? `<a href="${fileURL}" target="_blank">${text}</a>` : text;
 
-    const timeDiv = document.createElement("div");
-    timeDiv.className = "timestamp";
-    timeDiv.textContent = timestamp;
-
     li.appendChild(avatar);
     li.appendChild(bubble);
-    li.appendChild(timeDiv);
-
     return li;
   }
 
@@ -118,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Update the entire visitor tab list when the server sends an updated list.
+  // Rebuild the visitor tab list when the server sends an updated list.
   socket.on("visitor list", (visitors) => {
     visitorList.innerHTML = "";
     visitors.forEach((visitorId, index) => {
@@ -145,11 +134,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Process incoming customer messages.
   socket.on("chat message", (msg) => {
-    // Filter out messages that lack a valid 'from' (to ignore support messages).
+    // Only process messages that have a valid 'from'; ignore support messages.
     if (!msg.from || msg.from === "support") return;
-
-    const timestamp = getTimestamp();
-    const li = buildMessageElement("Customer", msg.message, true, timestamp, msg.file);
+    const li = buildMessageElement("Customer", msg.message, true, msg.file);
     addToHistory(msg.from, li);
     updateVisitorTab(msg.from);
 
@@ -159,18 +146,16 @@ document.addEventListener("DOMContentLoaded", () => {
       playNotification();
     } else {
       const btn = visitorList.querySelector(`button[data-visitor-id="${msg.from}"]`);
-      if (btn && !btn.classList.contains("active")) {
-        btn.classList.add("pulse");
-      }
-      // Start the first-message alert immediately if not already running.
-      if (msg.from !== currentTarget && !alertIntervals[msg.from]) {
+      if (btn && !btn.classList.contains("active")) btn.classList.add("pulse");
+      // Start the first-message alert if not already active.
+      if (!alertIntervals[msg.from]) {
         playFirstMessageAlert();
         alertIntervals[msg.from] = setInterval(playFirstMessageAlert, 6000);
       }
     }
   });
 
-  // Show typing indicator if admin has selected this visitor.
+  // Show typing indicator when the server emits a typing event.
   socket.on("typing", ({ from }) => {
     if (from === currentTarget) {
       const typing = document.createElement("div");
@@ -190,12 +175,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!currentTarget) return alert("Choose a visitor first.");
     const message = input.value.trim();
     const file = fileInput.files[0];
-    const timestamp = getTimestamp();
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
         socket.emit("admin message", { target: currentTarget, message, file: reader.result });
-        const li = buildMessageElement("Support", message || "📎 File", false, timestamp, reader.result);
+        const li = buildMessageElement("Support", message || "📎 File", false, reader.result);
         addToHistory(currentTarget, li);
         messages.appendChild(li);
         messages.scrollTop = messages.scrollHeight;
@@ -203,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
       reader.readAsDataURL(file);
     } else if (message) {
       socket.emit("admin message", { target: currentTarget, message });
-      const li = buildMessageElement("Support", message, false, timestamp);
+      const li = buildMessageElement("Support", message, false);
       addToHistory(currentTarget, li);
       messages.appendChild(li);
       messages.scrollTop = messages.scrollHeight;
@@ -216,8 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const lines = Array.from(messages.querySelectorAll("li")).map(li => {
       const who = li.classList.contains("customer") ? "Customer" : "Support";
       const text = li.querySelector(".bubble")?.textContent || "";
-      const time = li.querySelector(".timestamp")?.textContent || "";
-      return `[${time}] ${who}: ${text}`;
+      return `${who}: ${text}`;
     });
     const blob = new Blob([lines.join("\n")], { type: "text/plain" });
     const a = document.createElement("a");
