@@ -10,8 +10,12 @@ body.dark {
   --input-bg: #2a2a2a;
 }
 
+body.loading {
+  visibility: hidden;
+}
+
 body {
-  font-family: system-ui, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif;
+  font-family: system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
   margin: 0;
@@ -59,8 +63,8 @@ li.them {
 }
 
 .avatar-img {
-  width: 96px;
-  height: 96px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -152,20 +156,19 @@ button:hover, #micBtn:hover, #emojiBtn:hover {
   font-weight: bold;
 }
 
-.alert-badge {
-  font-size: 0.75rem;
-  color: #e52238;
-  margin-top: 4px;
-  font-style: italic;
-  text-align: center;
+/* 🔔 Flashing new message indicator */
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(229, 34, 56, 0.6); }
+  70%  { box-shadow: 0 0 0 10px rgba(229, 34, 56, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(229, 34, 56, 0); }
+}
+
+#visitorList button.pulse {
+  animation: pulse 1.5s infinite;
+  border-color: #e52238;
 }
 
 @media screen and (max-width: 600px) {
-  .avatar-img {
-    width: 64px;
-    height: 64px;
-  }
-
   form {
     flex-direction: column;
   }
@@ -173,12 +176,6 @@ button:hover, #micBtn:hover, #emojiBtn:hover {
   form > div {
     width: 100%;
     flex-direction: row;
-  }
-
-  #micBtn, #emojiBtn {
-    width: 44px;
-    padding: 0;
-    font-size: 1.2rem;
   }
 
   .controls {

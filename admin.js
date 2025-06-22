@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const isAdmin = location.pathname.includes("admin");
-  const socket = io({ query: { admin: isAdmin ? "true" : "false" } });
+  const socket = io({ query: { admin: "true" } });
 
   const form = document.getElementById("form");
   const input = document.getElementById("input");
@@ -81,9 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
         messages.innerHTML = chatHistory[id] || "";
         socket.emit("admin join", id);
         btn.classList.add("active");
-
-        const alert = container.querySelector(".alert-badge");
-        if (alert) alert.remove();
+        btn.classList.remove("pulse");
       };
 
       container.appendChild(btn);
@@ -101,11 +98,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const b = div.querySelector("button");
         return b && msg.from && b.dataset.visitorId === msg.from;
       });
-      if (container && !container.querySelector(".alert-badge")) {
-        const badge = document.createElement("div");
-        badge.className = "alert-badge";
-        badge.textContent = "🔔 New message";
-        container.appendChild(badge);
+      if (container) {
+        const btn = container.querySelector("button");
+        if (btn && !btn.classList.contains("active")) {
+          btn.classList.add("pulse");
+        }
       }
       playNotification();
     }
@@ -198,12 +195,11 @@ document.addEventListener("DOMContentLoaded", () => {
     theme: window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
     position: "bottom-center",
     autoHide: true,
-    zIndex: 9999
+    zIndex: 10000
   });
 
   if (emojiBtn) {
     emojiBtn.addEventListener("click", () => picker.togglePicker(emojiBtn));
-
     picker.on("emoji", emoji => {
       input.value += emoji;
       input.focus();
