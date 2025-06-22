@@ -37,7 +37,6 @@ ul {
   gap: 12px;
 }
 
-/* Proper alignment of bubbles */
 li {
   display: flex;
   flex-direction: row;
@@ -146,10 +145,20 @@ button:focus {
   flex-wrap: nowrap;
 }
 
+#downloadBtn {
+  white-space: nowrap;
+}
+
 @media screen and (max-width: 600px) {
   .controls {
     flex-direction: row;
     justify-content: space-between;
+    padding: 0 12px 8px;
+  }
+
+  #downloadBtn {
+    max-width: 120px;
+    flex-shrink: 0;
   }
 
   form {
@@ -165,6 +174,11 @@ button:focus {
   input[type="file"],
   button {
     width: 100%;
+  }
+
+  button:active,
+  button:focus {
+    background-color: var(--primary-color);
   }
 }
 
@@ -187,7 +201,6 @@ button:focus {
   font-weight: bold;
 }
 
-/* Flashing animation for new messages */
 @keyframes flashButton {
   0%   { background-color: var(--alert-color); }
   50%  { background-color: #ffffff; color: var(--alert-color); }

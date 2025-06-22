@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!muteToggle.checked) notifySound.play();
   }
 
-  function renderMessageHTML(sender, text, isCustomer, timestamp, fileURL = null) {
+  function buildMessageHTML(who, text, isCustomer, timestamp, fileURL = null) {
     const li = document.createElement("li");
     li.className = isCustomer ? "customer" : "support";
 
@@ -38,12 +38,12 @@ document.addEventListener("DOMContentLoaded", () => {
     avatar.className = "avatar";
 
     const label = document.createElement("h3");
-    label.textContent = isCustomer ? "Customer" : "Support";
+    label.textContent = who;
 
     const img = document.createElement("img");
     img.className = "avatar-img";
     img.src = isCustomer ? CUSTOMER_AVATAR : SUPPORT_AVATAR;
-    img.alt = `${label.textContent} avatar`;
+    img.alt = `${who} avatar`;
 
     avatar.appendChild(label);
     avatar.appendChild(img);
@@ -63,15 +63,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return li;
   }
 
-  function appendMessage(visitorId, sender, text, isCustomer, timestamp, fileURL = null) {
-    const li = renderMessageHTML(sender, text, isCustomer, timestamp, fileURL);
+  function addToHistory(visitorId, li) {
     if (!chatHistory[visitorId]) chatHistory[visitorId] = [];
     chatHistory[visitorId].push(li.outerHTML);
-    if (visitorId === currentTarget) {
-      messages.appendChild(li);
-      messages.scrollTop = messages.scrollHeight;
-      if (isCustomer) playNotification();
-    }
   }
 
   socket.on("visitor list", (visitors) => {
@@ -99,17 +93,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   socket.on("chat message", (msg) => {
     const timestamp = getTimestamp();
-    appendMessage(msg.from, "Customer", msg.message, true, timestamp, msg.file);
+    const li = buildMessageHTML("Customer", msg.message, true, timestamp, msg.file);
+    addToHistory(msg.from, li);
 
-    const container = [...visitorList.children].find(div => {
-      const b = div.querySelector("button");
-      return b && msg.from && b.dataset.visitorId === msg.from;
-    });
-    if (container) {
-      const btn = container.querySelector("button");
-      if (btn && msg.from !== currentTarget) {
-        btn.classList.add("pulse");
-      }
+    if (msg.from === currentTarget) {
+      messages.appendChild(li);
+      messages.scrollTop = messages.scrollHeight;
+      playNotification();
+    } else {
+      const btn = visitorList.querySelector(`button[data-visitor-id="${msg.from}"]`);
+      if (btn && !btn.classList.contains("active")) btn.classList.add("pulse");
     }
   });
 
@@ -122,9 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
       typing.style.padding = "0 16px 8px";
       messages.appendChild(typing);
       messages.scrollTop = messages.scrollHeight;
-      setTimeout(() => {
-        typing.remove();
-      }, 1500);
+      setTimeout(() => typing.remove(), 1500);
     }
   });
 
@@ -134,3 +125,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const message = input.value.trim();
     const file = fileInput.files[0];
+    const timestamp = getTimestamp();
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        socket.emit("admin message", { target: currentTarget, message, file: reader.result });
+        const li = buildMessageHTML("Support", message || "📎 File", false, timestamp, reader.result);
+        addToHistory(currentTarget, li);
+        messages.appendChild(li);
+        messages.scrollTop = messages.scrollHeight;
+      };
+      reader.readAsDataURL(file);
+    } else if (message) {
+      socket.emit("admin message", { target: currentTarget, message });
+      const li = buildMessageHTML("Support", message, false, timestamp);
+      addToHistory(currentTarget, li);
+      messages.appendChild(li);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    input.value = "";
+    fileInput.value = "";
+  });
+
+  downloadBtn.addEventListener("click", () => {
+    const lines = [...messages.querySelectorAll("li")].map(li => {
+      const who = li.classList.contains("customer") ? "Customer" : "Support";
+      const text = li.querySelector(".bubble")?.textContent || "";
+      const time = li.querySelector(".timestamp")?.textContent || "";
+      return `[${time}] ${who}: ${text}`;
+    });
+    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "admin-chat-log.txt";
+    a.click();
+  });
+
+  if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    document.body.classList.add("dark");
+  }
+});
