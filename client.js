@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
   const socket = io();
-
   const form = document.getElementById("form");
   const input = document.getElementById("input");
   const fileInput = document.getElementById("fileInput");
@@ -24,43 +23,50 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function playNotification() {
-    if (!muteToggle.checked) notifySound.play();
+    if (!muteToggle.checked && notifySound) {
+      notifySound.play();
+    }
   }
 
-  function addMessage(sender, text, isCustomer, timestamp, fileURL = null) {
+  function buildMessageElement(who, text, isCustomer, timestamp, fileURL = null) {
     const li = document.createElement("li");
     li.className = isCustomer ? "customer" : "support";
-
+    // Reverse support messages so the avatar appears on the right.
+    if (!isCustomer) {
+      li.style.flexDirection = "row-reverse";
+    }
     const avatar = document.createElement("div");
     avatar.className = "avatar";
-
     const label = document.createElement("h3");
-    label.textContent = isCustomer ? "Customer" : "Support";
-
+    label.textContent = who;
     const img = document.createElement("img");
     img.className = "avatar-img";
     img.src = isCustomer ? CUSTOMER_AVATAR : SUPPORT_AVATAR;
-    img.alt = `${label.textContent} avatar`;
-
+    img.alt = `${who} avatar`;
     avatar.appendChild(label);
     avatar.appendChild(img);
-
     const bubble = document.createElement("div");
     bubble.className = "bubble";
+    bubble.style.whiteSpace = "normal";
+    bubble.style.wordWrap = "break-word";
     bubble.innerHTML = fileURL ? `<a href="${fileURL}" target="_blank">${text}</a>` : text;
-
-    const time = document.createElement("div");
-    time.className = "timestamp";
-    time.textContent = timestamp;
-
+    const timeDiv = document.createElement("div");
+    timeDiv.className = "timestamp";
+    timeDiv.textContent = timestamp;
     li.appendChild(avatar);
     li.appendChild(bubble);
-    li.appendChild(time);
+    li.appendChild(timeDiv);
+    return li;
+  }
+
+  function addMessage(sender, text, isCustomer, timestamp, fileURL = null) {
+    const li = buildMessageElement(sender, text, isCustomer, timestamp, fileURL);
     messages.appendChild(li);
     messages.scrollTop = messages.scrollHeight;
   }
 
   socket.on("chat message", (msg) => {
+    // Here, support messages (sent by admin) arrive to the customer.
     const timestamp = getTimestamp();
     addMessage("Support", msg.message, false, timestamp, msg.file);
     playNotification();
@@ -71,7 +77,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const message = input.value.trim();
     const file = fileInput.files[0];
     const timestamp = getTimestamp();
-
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
@@ -83,7 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
       socket.emit("chat message", { message });
       addMessage("Customer", message, true, timestamp);
     }
-
     input.value = "";
     fileInput.value = "";
   });
@@ -93,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   downloadBtn.addEventListener("click", () => {
-    const lines = [...messages.querySelectorAll("li")].map(li => {
+    const lines = Array.from(messages.querySelectorAll("li")).map(li => {
       const who = li.classList.contains("customer") ? "Customer" : "Support";
       const text = li.querySelector(".bubble")?.textContent || "";
       const time = li.querySelector(".timestamp")?.textContent || "";
