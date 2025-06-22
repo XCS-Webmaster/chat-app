@@ -37,7 +37,7 @@ ul {
   gap: 12px;
 }
 
-/* Message alignment: customer left, support right */
+/* Messages: customer left, support right */
 li {
   display: flex;
   flex-direction: row;
@@ -49,6 +49,10 @@ li.customer {
 }
 li.support {
   justify-content: flex-end;
+}
+/* For support messages, add a class to force reverse order */
+li.support.support-reverse {
+  flex-direction: row-reverse;
 }
 
 .avatar {
@@ -70,7 +74,7 @@ li.support {
   object-fit: cover;
 }
 
-/* Bubble styling: normal wrapping, no timestamps */
+/* Bubble: normal wrapping, no timestamps */
 .bubble {
   background-color: #e0e0e0;
   color: #000;
@@ -128,13 +132,12 @@ button:hover {
   background-color: var(--alert-color);
 }
 
-/* Force active state on mobile */
+/* For mobile devices: force red on active tap */
 @media (pointer: coarse) {
   button:active {
     background-color: var(--alert-color) !important;
   }
 }
-
 button:active,
 button:focus {
   background-color: var(--primary-color);

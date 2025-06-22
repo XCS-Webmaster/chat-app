@@ -1,7 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Connect as admin and request the visitor list immediately.
+  // Connect as admin and immediately request the visitor list.
   const socket = io({ query: { admin: "true" } });
   socket.emit("request visitors");
+
+  // Also refresh the visitor list every 5 seconds.
+  setInterval(() => {
+    socket.emit("request visitors");
+  }, 5000);
 
   const form = document.getElementById("form");
   const input = document.getElementById("input");
@@ -16,9 +21,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const CUSTOMER_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Customer-Avatar.png";
 
   let currentTarget = null;
-  // chatHistory: maps visitorId to an array of message HTML strings.
+  // Maps visitorId to an array of message HTML strings.
   const chatHistory = {};
-  // alertIntervals: maps visitorId to interval IDs for the first-message alert.
+  // Maps visitorId to an interval ID for the first-message alert.
   const alertIntervals = {};
   const firstMessageSound = document.getElementById("firstMessageSound");
 
@@ -30,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function playNotification() {
     if (!muteToggle.checked && notifySound) {
+      notifySound.currentTime = 0;
       notifySound.play().catch(err => console.log(err));
     }
   }
@@ -37,19 +43,20 @@ document.addEventListener("DOMContentLoaded", () => {
   // Play the special first-message alert sound.
   function playFirstMessageAlert() {
     if (!muteToggle.checked && firstMessageSound) {
+      firstMessageSound.currentTime = 0;
       firstMessageSound.play().catch(err => console.log(err));
     }
   }
 
   // Build a message element.
   // isCustomer === true → customer message (left aligned).
-  // Otherwise, support message (right aligned with reversed order).
+  // Otherwise, support message (right aligned, plus extra class for reverse layout).
   // Timestamps are removed.
   function buildMessageElement(who, text, isCustomer, fileURL = null) {
     const li = document.createElement("li");
     li.className = isCustomer ? "customer" : "support";
     if (!isCustomer) {
-      li.style.flexDirection = "row-reverse"; // reverse for support messages
+      li.classList.add("support-reverse");
     }
     const avatar = document.createElement("div");
     avatar.className = "avatar";
@@ -84,16 +91,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Ensure a visitor tab exists for a given visitorId.
+  // Filter out duplicate IDs and ignore any falsey values or "admin" ID.
   function updateVisitorTab(visitorId) {
+    if (!visitorId || visitorId === "admin") return;
     let btn = visitorList.querySelector(`button[data-visitor-id="${visitorId}"]`);
     if (!btn) {
       const container = document.createElement("div");
       container.className = "visitor-btn-group";
-      const existing = Array.from(visitorList.querySelectorAll("button")).map(b => b.dataset.visitorId);
-      // Use the number of unique visitor tabs as the index.
-      const index = existing.length + 1;
       btn = document.createElement("button");
-      btn.textContent = `Visitor ${index}`;
+      // The visitor tab index is determined by the current number of tabs.
+      const existing = Array.from(visitorList.querySelectorAll("button")).map(b => b.dataset.visitorId);
+      btn.textContent = `Visitor ${existing.length + 1}`;
       btn.dataset.visitorId = visitorId;
       btn.onclick = () => {
         currentTarget = visitorId;
@@ -111,10 +119,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Update the entire visitor list, filtering duplicates.
+  // Update the entire visitor list.
   socket.on("visitor list", (visitors) => {
-    // Filter out falsy and duplicate visitor IDs.
-    visitors = visitors.filter(v => v);
+    // Filter out falsy values and the admin ID, and remove duplicates.
+    visitors = visitors.filter(v => v && v !== "admin");
     visitors = Array.from(new Set(visitors));
     visitorList.innerHTML = "";
     visitors.forEach((visitorId, index) => {
@@ -141,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Process incoming customer messages.
   socket.on("chat message", (msg) => {
-    // Only process messages with a valid 'from' (ignore support messages)
+    // Only process messages with a valid 'from'; ignore support messages.
     if (!msg.from || msg.from === "support") return;
     const li = buildMessageElement("Customer", msg.message, true, msg.file);
     addToHistory(msg.from, li);
@@ -156,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (btn && !btn.classList.contains("active")) {
         btn.classList.add("pulse");
       }
-      // Start the first-message alert if not already running.
+      // Start the first-message alert if not already active.
       if (!alertIntervals[msg.from]) {
         playFirstMessageAlert();
         alertIntervals[msg.from] = setInterval(playFirstMessageAlert, 6000);

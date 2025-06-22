@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function playNotification() {
     if (!muteToggle.checked && notifySound) {
+      notifySound.currentTime = 0;
       notifySound.play().catch(e => console.log(e));
     }
   }
@@ -28,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const li = document.createElement("li");
     li.className = isCustomer ? "customer" : "support";
     if (!isCustomer) {
-      li.style.flexDirection = "row-reverse";
+      li.classList.add("support-reverse");
     }
     const avatar = document.createElement("div");
     avatar.className = "avatar";
@@ -57,7 +58,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   socket.on("chat message", (msg) => {
-    // Support message arriving to the customer.
     addMessage("Support", msg.message, false, msg.file);
     playNotification();
   });
