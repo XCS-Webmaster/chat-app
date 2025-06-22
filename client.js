@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function playNotification() {
     if (!muteToggle.checked && notifySound) {
-      notifySound.play();
+      notifySound.play().catch(e => console.log(e));
     }
   }
 

@@ -44,11 +44,9 @@ li {
   align-items: flex-start;
   width: 100%;
 }
-
 li.customer {
   justify-content: flex-start;
 }
-
 li.support {
   justify-content: flex-end;
 }
@@ -72,7 +70,7 @@ li.support {
   object-fit: cover;
 }
 
-/* Bubble with normal wrapping */
+/* Bubble styling: normal wrapping, no timestamps */
 .bubble {
   background-color: #e0e0e0;
   color: #000;
@@ -85,8 +83,6 @@ li.support {
   word-wrap: break-word;
 }
 
-/* No timestamp styling since they are removed */
- 
 form {
   display: flex;
   flex-wrap: wrap;
@@ -111,7 +107,6 @@ input[type="text"] {
 
 input[type="file"] {
   flex: none;
-  /* Vertically center a bit */
   align-self: center;
   margin-top: 4px;
   margin-bottom: 4px;
@@ -133,7 +128,13 @@ button:hover {
   background-color: var(--alert-color);
 }
 
-/* After tap, use active/focus to flash red then revert */
+/* Force active state on mobile */
+@media (pointer: coarse) {
+  button:active {
+    background-color: var(--alert-color) !important;
+  }
+}
+
 button:active,
 button:focus {
   background-color: var(--primary-color);
@@ -157,21 +158,17 @@ button:focus {
     justify-content: space-between;
     padding: 0 12px 8px;
   }
-  
   #downloadBtn {
     max-width: 120px;
     flex-shrink: 0;
   }
-  
   form {
     flex-direction: column;
   }
-  
   form > div {
     width: 100%;
     flex-direction: row;
   }
-  
   input[type="text"],
   input[type="file"],
   button {

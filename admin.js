@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Connect as admin and immediately request the visitor list.
+  // Connect as admin and request the visitor list immediately.
   const socket = io({ query: { admin: "true" } });
   socket.emit("request visitors");
 
@@ -16,9 +16,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const CUSTOMER_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Customer-Avatar.png";
 
   let currentTarget = null;
-  // chatHistory: maps visitorId to an array of HTML messages
+  // chatHistory: maps visitorId to an array of message HTML strings.
   const chatHistory = {};
-  // alertIntervals: maps visitorId to an interval ID for repeating the alert
+  // alertIntervals: maps visitorId to interval IDs for the first-message alert.
   const alertIntervals = {};
   const firstMessageSound = document.getElementById("firstMessageSound");
 
@@ -30,36 +30,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function playNotification() {
     if (!muteToggle.checked && notifySound) {
-      notifySound.play();
+      notifySound.play().catch(err => console.log(err));
     }
   }
 
   // Play the special first-message alert sound.
   function playFirstMessageAlert() {
     if (!muteToggle.checked && firstMessageSound) {
-      firstMessageSound.play();
+      firstMessageSound.play().catch(err => console.log(err));
     }
   }
 
   // Build a message element.
   // isCustomer === true → customer message (left aligned).
-  // Otherwise, it's a support message (right aligned with reversed order).
-  // Note: Date/time stamps have been removed.
+  // Otherwise, support message (right aligned with reversed order).
+  // Timestamps are removed.
   function buildMessageElement(who, text, isCustomer, fileURL = null) {
     const li = document.createElement("li");
     li.className = isCustomer ? "customer" : "support";
     if (!isCustomer) {
       li.style.flexDirection = "row-reverse"; // reverse for support messages
     }
-
     const avatar = document.createElement("div");
     avatar.className = "avatar";
+
     const label = document.createElement("h3");
     label.textContent = who;
+
     const img = document.createElement("img");
     img.className = "avatar-img";
     img.src = isCustomer ? CUSTOMER_AVATAR : SUPPORT_AVATAR;
     img.alt = `${who} avatar`;
+
     avatar.appendChild(label);
     avatar.appendChild(img);
 
@@ -87,9 +89,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!btn) {
       const container = document.createElement("div");
       container.className = "visitor-btn-group";
-      const currentCount = visitorList.querySelectorAll("button").length;
+      const existing = Array.from(visitorList.querySelectorAll("button")).map(b => b.dataset.visitorId);
+      // Use the number of unique visitor tabs as the index.
+      const index = existing.length + 1;
       btn = document.createElement("button");
-      btn.textContent = `Visitor ${currentCount + 1}`;
+      btn.textContent = `Visitor ${index}`;
       btn.dataset.visitorId = visitorId;
       btn.onclick = () => {
         currentTarget = visitorId;
@@ -107,8 +111,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Rebuild the visitor tab list when the server sends an updated list.
+  // Update the entire visitor list, filtering duplicates.
   socket.on("visitor list", (visitors) => {
+    // Filter out falsy and duplicate visitor IDs.
+    visitors = visitors.filter(v => v);
+    visitors = Array.from(new Set(visitors));
     visitorList.innerHTML = "";
     visitors.forEach((visitorId, index) => {
       const container = document.createElement("div");
@@ -134,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Process incoming customer messages.
   socket.on("chat message", (msg) => {
-    // Only process messages that have a valid 'from'; ignore support messages.
+    // Only process messages with a valid 'from' (ignore support messages)
     if (!msg.from || msg.from === "support") return;
     const li = buildMessageElement("Customer", msg.message, true, msg.file);
     addToHistory(msg.from, li);
@@ -146,8 +153,10 @@ document.addEventListener("DOMContentLoaded", () => {
       playNotification();
     } else {
       const btn = visitorList.querySelector(`button[data-visitor-id="${msg.from}"]`);
-      if (btn && !btn.classList.contains("active")) btn.classList.add("pulse");
-      // Start the first-message alert if not already active.
+      if (btn && !btn.classList.contains("active")) {
+        btn.classList.add("pulse");
+      }
+      // Start the first-message alert if not already running.
       if (!alertIntervals[msg.from]) {
         playFirstMessageAlert();
         alertIntervals[msg.from] = setInterval(playFirstMessageAlert, 6000);
@@ -155,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Show typing indicator when the server emits a typing event.
+  // Handle typing events.
   socket.on("typing", ({ from }) => {
     if (from === currentTarget) {
       const typing = document.createElement("div");
