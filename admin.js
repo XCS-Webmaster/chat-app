@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Connect as admin and request the visitor list immediately.
   const socket = io({ query: { admin: "true" } });
   socket.emit("request visitors");
-  // Periodic update for visitors (every 5 seconds)
+  // Periodically update visitor list every 5 seconds.
   setInterval(() => {
     socket.emit("request visitors");
   }, 5000);
@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentTarget = null;
   // Map visitorId to chat history (an array of HTML strings).
   const chatHistory = {};
-  // Track if a visitor’s first-message alert has been played.
+  // Track per visitor whether their "first message" alert sound has played.
   const alertPlayed = {};
 
   socket.on("connect", () => {
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Play the first-message alert once.
+  // Play the first-message alert sound once.
   function playFirstMessageAlert() {
     const firstSound = document.getElementById("firstMessageSound");
     if (!muteToggle.checked && firstSound) {
@@ -47,19 +47,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // If a file URL is provided, display a thumbnail (if image) or a link.
+  // Build a message element.
+  // For both panels the avatar always comes first then the bubble.
+  // If a fileURL is provided:
+  //  • If it starts with "data:image/", display the image thumbnail with "View" and "Download" buttons below it.
+  //  • Otherwise, show a link.
   function buildMessageElement(who, text, isCustomer, fileURL = null) {
     const li = document.createElement("li");
     li.className = isCustomer ? "customer" : "support";
 
     const avatar = document.createElement("div");
     avatar.className = "avatar";
+
     const label = document.createElement("h3");
     label.textContent = who;
+
     const img = document.createElement("img");
     img.className = "avatar-img";
     img.src = isCustomer ? CUSTOMER_AVATAR : SUPPORT_AVATAR;
     img.alt = `${who} avatar`;
+
     avatar.appendChild(label);
     avatar.appendChild(img);
 
@@ -67,10 +74,17 @@ document.addEventListener("DOMContentLoaded", () => {
     bubble.className = "bubble";
     bubble.style.whiteSpace = "normal";
     bubble.style.wordWrap = "break-word";
+    
     if (fileURL) {
       if (fileURL.startsWith("data:image/")) {
-        // Display the image thumbnail
-        bubble.innerHTML = `<img src="${fileURL}" alt="Attachment" style="max-width:100%; max-height:300px;">`;
+        // Display image thumbnail along with "View" and "Download" buttons.
+        bubble.innerHTML = `
+          <img src="${fileURL}" alt="Attachment" style="max-width:100%; max-height:300px; display:block; margin-bottom:8px;">
+          <div class="attachment-buttons">
+            <a href="${fileURL}" target="_blank">View</a>
+            <a href="${fileURL}" download>Download</a>
+          </div>
+        `;
       } else {
         bubble.innerHTML = `<a href="${fileURL}" target="_blank">View Attachment</a>`;
       }
@@ -90,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chatHistory[visitorId].push(liElement.outerHTML);
   }
 
+  // Ensure a visitor tab exists for a given visitorId.
   function updateVisitorTab(visitorId) {
     if (!visitorId || visitorId === "admin") return;
     let btn = visitorList.querySelector(`button[data-visitor-id="${visitorId}"]`);
@@ -116,6 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   socket.on("visitor list", (visitors) => {
+    // Filter out falsy values and duplicates; ignore the admin's own ID.
     visitors = visitors.filter(v => v && v !== "admin");
     visitors = Array.from(new Set(visitors));
     visitorList.innerHTML = "";
@@ -141,6 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   socket.on("chat message", (msg) => {
+    // Only process messages with valid 'from' that are not from support.
     if (!msg.from || msg.from === "support") return;
     const li = buildMessageElement("Customer", msg.message, true, msg.file);
     addToHistory(msg.from, li);

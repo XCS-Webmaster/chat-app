@@ -82,6 +82,19 @@ li.support {
   white-space: normal;
 }
 
+/* Attachment button styles */
+.attachment-buttons {
+  margin-top: 4px;
+}
+.attachment-buttons a {
+  margin-right: 8px;
+  text-decoration: none;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  padding: 4px 8px;
+  border-radius: 5px;
+}
+
 /* Form styling */
 form {
   display: flex;

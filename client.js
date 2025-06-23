@@ -25,9 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Build a message element (similar to admin.js).
   function buildMessageElement(who, text, isCustomer, fileURL = null) {
     const li = document.createElement("li");
     li.className = isCustomer ? "customer" : "support";
+
     const avatar = document.createElement("div");
     avatar.className = "avatar";
     const label = document.createElement("h3");
@@ -38,19 +40,27 @@ document.addEventListener("DOMContentLoaded", () => {
     img.alt = `${who} avatar`;
     avatar.appendChild(label);
     avatar.appendChild(img);
+
     const bubble = document.createElement("div");
     bubble.className = "bubble";
     bubble.style.whiteSpace = "normal";
     bubble.style.wordWrap = "break-word";
     if (fileURL) {
       if (fileURL.startsWith("data:image/")) {
-        bubble.innerHTML = `<img src="${fileURL}" alt="Attachment" style="max-width:100%; max-height:300px;">`;
+        bubble.innerHTML = `
+          <img src="${fileURL}" alt="Attachment" style="max-width:100%; max-height:300px; display:block; margin-bottom:8px;">
+          <div class="attachment-buttons">
+            <a href="${fileURL}" target="_blank">View</a>
+            <a href="${fileURL}" download>Download</a>
+          </div>
+        `;
       } else {
         bubble.innerHTML = `<a href="${fileURL}" target="_blank">View Attachment</a>`;
       }
     } else {
       bubble.innerHTML = text;
     }
+
     li.appendChild(avatar);
     li.appendChild(bubble);
     return li;
