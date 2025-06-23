@@ -27,15 +27,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const avatar = document.createElement("div");
     avatar.className = "avatar";
-
     const label = document.createElement("h3");
     label.textContent = who;
-
     const img = document.createElement("img");
     img.className = "avatar-img";
     img.src = isCustomer ? CUSTOMER_AVATAR : SUPPORT_AVATAR;
     img.alt = `${who} avatar`;
-
     avatar.appendChild(label);
     avatar.appendChild(img);
 
@@ -48,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
       bubble.innerHTML = `
         <img src="${blobUrl}" alt="Attachment" style="max-width:100%; max-height:300px; display:block; margin-bottom:8px;">
         <div class="attachment-buttons">
-          <a href="${blobUrl}" target="_blank" class="btn">View</a>
+          <button class="btn" onclick="window.open('${blobUrl}', '_blank')">View</button>
           <a href="${blobUrl}" download class="btn">Download</a>
         </div>
       `;
@@ -109,20 +106,3 @@ document.addEventListener("DOMContentLoaded", () => {
     socket.emit("typing");
   });
 
-  downloadBtn.addEventListener("click", () => {
-    const lines = Array.from(messages.querySelectorAll("li")).map(li => {
-      const who = li.classList.contains("customer") ? "Customer" : "Support";
-      const text = li.querySelector(".bubble")?.textContent || "";
-      return `${who}: ${text}`;
-    });
-    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "chat-log.txt";
-    a.click();
-  });
-
-  if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    wrapper.classList.add("dark");
-  }
-});
