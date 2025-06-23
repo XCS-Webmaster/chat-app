@@ -38,7 +38,10 @@ ul {
   gap: 12px;
 }
 
-/* Messages: customer messages use class "customer", support messages use "support" */
+/* Messages: 
+   - Customer messages (class "customer") align left.
+   - Support messages (class "support") align right.
+*/
 li {
   display: flex;
   width: 100%;
@@ -82,17 +85,25 @@ li.support {
   white-space: normal;
 }
 
-/* Attachment button styles */
+/* Attachment button container */
 .attachment-buttons {
   margin-top: 4px;
 }
-.attachment-buttons a {
-  margin-right: 8px;
+
+/* New .btn class to match other buttons */
+.btn {
+  background-color: var(--primary-color);
+  color: white;
   text-decoration: none;
-  color: var(--primary-color);
-  border: 1px solid var(--primary-color);
-  padding: 4px 8px;
-  border-radius: 5px;
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+.btn:hover {
+  background-color: var(--alert-color);
 }
 
 /* Form styling */
@@ -181,7 +192,7 @@ button:focus {
   }
 }
 
-/* Visitor list for admin panel */
+/* Visitor list (admin panel) */
 #visitorList {
   display: flex;
   flex-wrap: wrap;
