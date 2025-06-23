@@ -1,19 +1,9 @@
 :root {
-  --bg: #ffffff;
-  --text: #000000;
+  --bg: #fff;
+  --text: #000;
   --input-bg: #f0f0f0;
-  --primary-color: #3967d9;
-  --alert-color: #e52238;
-}
-
-body.dark {
-  --bg: #1a1a1a;
-  --text: #ffffff;
-  --input-bg: #2a2a2a;
-}
-
-body.loading * {
-  visibility: hidden;
+  --primary: #3967d9;
+  --alert: #e52238;
 }
 
 body {
@@ -25,12 +15,19 @@ body {
   flex-direction: column;
   height: 100vh;
 }
+body.dark {
+  --bg: #1a1a1a;
+  --text: #fff;
+  --input-bg: #2a2a2a;
+}
+body.loading * {
+  visibility: hidden;
+}
 
-/* Chat window */
 ul {
   list-style: none;
-  padding: 16px;
   margin: 0;
+  padding: 16px;
   flex: 1;
   overflow-y: auto;
   display: flex;
@@ -38,10 +35,6 @@ ul {
   gap: 12px;
 }
 
-/* Messages: 
-   - Customer messages (class "customer") align left.
-   - Support messages (class "support") align right.
-*/
 li {
   display: flex;
   width: 100%;
@@ -57,67 +50,47 @@ li.support {
   margin: 0 8px;
   text-align: center;
 }
-
 .avatar h3 {
-  margin: 0 0 4px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #666;
+  font-size: 1.15rem;
+  margin: 0 0 6px;
 }
-
 .avatar-img {
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
 }
 
-/* Chat bubble */
 .bubble {
-  background-color: #e0e0e0;
+  background: #e0e0e0;
   color: #000;
   padding: 10px 14px;
   border-radius: 10px;
   font-size: 1rem;
   line-height: 1.5;
   max-width: 65%;
-  word-wrap: break-word;
   white-space: normal;
+  word-wrap: break-word;
 }
 
-/* Attachment button container */
 .attachment-buttons {
-  margin-top: 4px;
+  margin-top: 6px;
+}
+.attachment-buttons .btn {
+  margin-right: 8px;
 }
 
-/* New .btn class to match other buttons */
-.btn {
-  background-color: var(--primary-color);
-  color: white;
-  text-decoration: none;
-  display: inline-block;
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: none;
-  font-weight: bold;
-  transition: background-color 0.3s;
-}
-.btn:hover {
-  background-color: var(--alert-color);
-}
-
-/* Form styling */
 form {
   display: flex;
-  flex-wrap: wrap;
   gap: 10px;
   padding: 10px;
   background: var(--input-bg);
   border-top: 1px solid #ccc;
+  flex-wrap: wrap;
 }
 form > div {
-  display: flex;
   flex: 1;
+  display: flex;
   gap: 6px;
 }
 input[type="text"] {
@@ -127,72 +100,58 @@ input[type="text"] {
   border: 1px solid #ccc;
 }
 input[type="file"] {
-  flex: none;
   align-self: center;
-  margin-top: 4px;
-  margin-bottom: 4px;
 }
-button {
-  background-color: var(--primary-color);
+button,
+.btn {
+  background: var(--primary);
   color: white;
   border: none;
   border-radius: 10px;
   padding: 10px 14px;
-  cursor: pointer;
   font-weight: bold;
-  height: 44px;
-  transition: background-color 0.3s;
+  cursor: pointer;
+  transition: background 0.3s;
+  text-decoration: none;
+  display: inline-block;
 }
-button:hover {
-  background-color: var(--alert-color);
+button:hover,
+.btn:hover {
+  background: var(--alert);
 }
 button:active,
-button:focus {
-  background-color: var(--primary-color);
+.btn:active {
+  background: var(--primary);
 }
-/* Force active red on mobile devices */
-@media (hover: none) {
-  button:active {
-    background-color: var(--alert-color) !important;
-  }
-}
-
 .controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 16px 8px;
-  flex-wrap: nowrap;
 }
 #downloadBtn {
   white-space: nowrap;
 }
 
+@media (hover: none) {
+  button:active,
+  .btn:active {
+    background-color: var(--alert) !important;
+  }
+}
 @media screen and (max-width: 600px) {
-  .controls {
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 0 12px 8px;
-  }
-  #downloadBtn {
-    max-width: 120px;
-    flex-shrink: 0;
-  }
   form {
     flex-direction: column;
   }
   form > div {
     width: 100%;
-    flex-direction: row;
   }
-  input[type="text"],
-  input[type="file"],
+  input,
   button {
     width: 100%;
   }
 }
 
-/* Visitor list (admin panel) */
 #visitorList {
   display: flex;
   flex-wrap: wrap;
@@ -205,17 +164,15 @@ button:focus {
   align-items: center;
 }
 #visitorList button.active {
-  background-color: var(--alert-color);
+  background: var(--alert);
   color: white;
-  font-weight: bold;
 }
-@keyframes flashButton {
-  0% { background-color: var(--alert-color); }
-  50% { background-color: #ffffff; color: var(--alert-color); }
-  100% { background-color: var(--alert-color); }
+@keyframes pulse {
+  0%, 100% { background: var(--alert); }
+  50% { background: #fff; color: var(--alert); }
 }
 #visitorList button.pulse {
-  animation: flashButton 1.2s infinite;
+  animation: pulse 1.2s infinite;
+  border: 2px solid var(--alert);
   font-weight: bold;
-  border: 2px solid var(--alert-color);
 }
