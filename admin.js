@@ -2,8 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Connect as admin and request the visitor list immediately.
   const socket = io({ query: { admin: "true" } });
   socket.emit("request visitors");
-
-  // Refresh the visitor list every 5 seconds.
+  // Periodic update for visitors (every 5 seconds)
   setInterval(() => {
     socket.emit("request visitors");
   }, 5000);
@@ -21,9 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const CUSTOMER_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Customer-Avatar.png";
 
   let currentTarget = null;
-  // Map visitorId to history of messages.
+  // Map visitorId to chat history (an array of HTML strings).
   const chatHistory = {};
-  // Track per visitor whether the "first message" alert sound has played.
+  // Track if a visitor’s first-message alert has been played.
   const alertPlayed = {};
 
   socket.on("connect", () => {
@@ -39,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Play the special alert once.
+  // Play the first-message alert once.
   function playFirstMessageAlert() {
     const firstSound = document.getElementById("firstMessageSound");
     if (!muteToggle.checked && firstSound) {
@@ -48,9 +47,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // If a file URL is provided, display a thumbnail (if image) or a link.
   function buildMessageElement(who, text, isCustomer, fileURL = null) {
     const li = document.createElement("li");
     li.className = isCustomer ? "customer" : "support";
+
     const avatar = document.createElement("div");
     avatar.className = "avatar";
     const label = document.createElement("h3");
@@ -61,11 +62,22 @@ document.addEventListener("DOMContentLoaded", () => {
     img.alt = `${who} avatar`;
     avatar.appendChild(label);
     avatar.appendChild(img);
+
     const bubble = document.createElement("div");
     bubble.className = "bubble";
     bubble.style.whiteSpace = "normal";
     bubble.style.wordWrap = "break-word";
-    bubble.innerHTML = fileURL ? `<a href="${fileURL}" target="_blank">${text}</a>` : text;
+    if (fileURL) {
+      if (fileURL.startsWith("data:image/")) {
+        // Display the image thumbnail
+        bubble.innerHTML = `<img src="${fileURL}" alt="Attachment" style="max-width:100%; max-height:300px;">`;
+      } else {
+        bubble.innerHTML = `<a href="${fileURL}" target="_blank">View Attachment</a>`;
+      }
+    } else {
+      bubble.innerHTML = text;
+    }
+
     li.appendChild(avatar);
     li.appendChild(bubble);
     return li;

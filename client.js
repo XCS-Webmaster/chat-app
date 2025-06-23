@@ -42,7 +42,15 @@ document.addEventListener("DOMContentLoaded", () => {
     bubble.className = "bubble";
     bubble.style.whiteSpace = "normal";
     bubble.style.wordWrap = "break-word";
-    bubble.innerHTML = fileURL ? `<a href="${fileURL}" target="_blank">${text}</a>` : text;
+    if (fileURL) {
+      if (fileURL.startsWith("data:image/")) {
+        bubble.innerHTML = `<img src="${fileURL}" alt="Attachment" style="max-width:100%; max-height:300px;">`;
+      } else {
+        bubble.innerHTML = `<a href="${fileURL}" target="_blank">View Attachment</a>`;
+      }
+    } else {
+      bubble.innerHTML = text;
+    }
     li.appendChild(avatar);
     li.appendChild(bubble);
     return li;
