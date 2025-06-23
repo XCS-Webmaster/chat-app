@@ -50,12 +50,12 @@ document.addEventListener("DOMContentLoaded", () => {
         bubble.innerHTML = `
           <img src="${fileURL}" alt="Attachment" style="max-width:100%; max-height:300px; display:block; margin-bottom:8px;">
           <div class="attachment-buttons">
-            <a href="${fileURL}" target="_blank">View</a>
-            <a href="${fileURL}" download>Download</a>
+            <a href="${fileURL}" target="_blank" class="btn">View</a>
+            <a href="${fileURL}" download class="btn">Download</a>
           </div>
         `;
       } else {
-        bubble.innerHTML = `<a href="${fileURL}" target="_blank">View Attachment</a>`;
+        bubble.innerHTML = `<a href="${fileURL}" target="_blank" class="btn">View Attachment</a>`;
       }
     } else {
       bubble.innerHTML = text;
