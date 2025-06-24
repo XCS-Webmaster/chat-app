@@ -4,10 +4,11 @@
   --input-bg: #f0f0f0;
   --primary: #3967d9;
   --alert: #e52238;
+  --font: Tahoma, sans-serif;
 }
 
 body {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font);
   background: var(--bg);
   color: var(--text);
   margin: 0;
@@ -99,6 +100,7 @@ input[type="text"] {
   padding: 10px;
   border-radius: 10px;
   border: 1px solid #ccc;
+  font-family: var(--font);
 }
 input[type="file"] {
   align-self: center;
@@ -115,6 +117,7 @@ button,
   transition: background 0.3s;
   text-decoration: none;
   display: inline-block;
+  font-family: var(--font);
 }
 button:hover,
 .btn:hover {
