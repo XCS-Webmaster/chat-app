@@ -9,19 +9,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const AVATAR_SUPPORT = "support-avatar.png";
   const AVATAR_CUSTOMER = "customer-avatar.png";
-
   let currentTarget = null;
+  let visitorLabels = {};
 
-  function renderMessage({ sender, message, file }) {
+  socket.on("visitor list", (ids) => {
+    visitorList.innerHTML = "";
+    ids.forEach((id, index) => {
+      const label = `Visitor ${index + 1}`;
+      visitorLabels[id] = label;
+
+      const btn = document.createElement("button");
+      btn.textContent = label;
+      btn.onclick = () => {
+        currentTarget = id;
+        messages.innerHTML = "";
+        socket.emit("admin join", id);
+        btn.classList.remove("pulse");
+      };
+      visitorList.appendChild(btn);
+    });
+  });
+
+  socket.on("chat message", ({ sender, message, file }) => {
     if (!currentTarget || (sender !== currentTarget && sender !== "support")) {
-      const btn = [...visitorList.querySelectorAll("button")].find(b => b.textContent === sender);
+      const btn = [...visitorList.querySelectorAll("button")].find(b => visitorLabels[sender] === b.textContent);
       if (btn) btn.classList.add("pulse");
       return;
     }
 
+    const label = visitorLabels[sender] || sender;
     const li = document.createElement("li");
     const container = document.createElement("div");
     container.className = "message";
+    container.classList.add(sender === "support" ? "right" : "left");
 
     const avatar = document.createElement("img");
     avatar.className = "avatar";
@@ -34,43 +54,40 @@ document.addEventListener("DOMContentLoaded", () => {
     if (file) {
       const isImage = file.startsWith("data:image/");
       if (isImage) {
-        bubble.innerHTML = `<strong>${sender}:</strong><br>`;
         const img = document.createElement("img");
         img.src = file;
         img.alt = "Attachment";
         img.style.maxWidth = "200px";
-        img.style.display = "block";
-        bubble.appendChild(img);
+
+        const actions = document.createElement("div");
+        actions.className = "image-actions";
+
+        const viewBtn = document.createElement("a");
+        viewBtn.href = file;
+        viewBtn.target = "_blank";
+        viewBtn.textContent = "View";
+
+        const dlBtn = document.createElement("a");
+        dlBtn.href = file;
+        dlBtn.download = "attachment";
+        dlBtn.textContent = "Download";
+
+        actions.append(viewBtn, dlBtn);
+
+        bubble.innerHTML = `<strong>${label}:</strong><br>`;
+        bubble.append(img, actions);
       } else {
-        bubble.innerHTML = `<strong>${sender} sent a file</strong><br><a href="${file}" download>Click to download</a>`;
+        bubble.innerHTML = `<strong>${label} sent a file</strong><br><a href="${file}" download>Click to download</a>`;
       }
     } else {
-      bubble.textContent = `${sender}: ${message}`;
+      bubble.textContent = `${label}: ${message}`;
     }
 
-    container.appendChild(avatar);
-    container.appendChild(bubble);
+    container.append(avatar, bubble);
     li.appendChild(container);
     messages.appendChild(li);
     messages.scrollTop = messages.scrollHeight;
-  }
-
-  socket.on("visitor list", (ids) => {
-    visitorList.innerHTML = "";
-    ids.forEach((id) => {
-      const btn = document.createElement("button");
-      btn.textContent = id;
-      btn.onclick = () => {
-        currentTarget = id;
-        messages.innerHTML = "";
-        socket.emit("admin join", id);
-        btn.classList.remove("pulse");
-      };
-      visitorList.appendChild(btn);
-    });
   });
-
-  socket.on("chat message", renderMessage);
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -78,7 +95,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const message = input.value.trim();
     const file = fileInput.files[0];
-
     if (!message && !file) return;
 
     if (file) {

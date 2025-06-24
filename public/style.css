@@ -1,4 +1,4 @@
-/* Base layout and theme */
+/* Base layout */
 body {
   font-family: Tahoma, sans-serif;
   margin: 0;
@@ -21,7 +21,7 @@ body {
   border-top-right-radius: 10px;
 }
 
-/* Visitor buttons (admin) */
+/* Visitor list for admin */
 #visitorList {
   display: flex;
   flex-wrap: wrap;
@@ -53,7 +53,7 @@ body {
   50% { background-color: #e52238; }
 }
 
-/* Message list */
+/* Chat message list */
 #messages {
   list-style: none;
   padding: 16px;
@@ -65,7 +65,7 @@ body {
   gap: 10px;
 }
 
-/* Sticky chat input form */
+/* Form input section */
 form {
   position: fixed;
   bottom: 0;
@@ -88,7 +88,7 @@ form input[type="text"] {
 }
 
 form input[type="file"] {
-  flex: none;
+  align-self: center;
 }
 
 form button {
@@ -104,21 +104,30 @@ form button:hover {
   background: #e52238;
 }
 
-/* Avatar + message layout */
+/* Message layout */
 .message {
   display: flex;
   align-items: flex-start;
   gap: 10px;
 }
 
+.message.left {
+  flex-direction: row;
+}
+
+.message.right {
+  flex-direction: row-reverse;
+}
+
+/* Avatar */
 .avatar {
-  width: 64px;
-  height: 64px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
 }
 
-/* Message bubble */
+/* Chat bubble */
 .bubble {
   background: #eee;
   padding: 10px;
@@ -133,5 +142,25 @@ form button:hover {
   border-radius: 4px;
   max-width: 100%;
   height: auto;
+  display: block;
 }
 
+/* Image actions */
+.image-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.image-actions a {
+  background: #3967d9;
+  color: #fff;
+  padding: 6px 10px;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.image-actions a:hover {
+  background: #e52238;
+}
