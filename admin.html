@@ -2,17 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Customer Chat</title>
+  <title>Admin Panel</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="messages"></div>
   <form id="form">
-    <input id="input" placeholder="Type a message..." autocomplete="off" />
+    <input id="input" placeholder="Reply to customer..." autocomplete="off" />
     <button>Send</button>
   </form>
   <script src="/socket.io/socket.io.js"></script>
   <script src="chat.js"></script>
-  <script>initChatUI('Customer');</script>
+  <script>initChatUI('Admin');</script>
 </body>
 </html>
