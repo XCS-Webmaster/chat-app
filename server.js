@@ -4,14 +4,10 @@ const http = require("http").createServer(app);
 const io = require("socket.io")(http);
 const path = require("path");
 
-const PORT = process.env.PORT || 3000;
-
-// Serve static files
-app.use(express.static(path.join(__dirname, "public")));
-
-// Track sockets
 const adminSockets = new Set();
 const visitorSockets = new Set();
+
+app.use(express.static(__dirname));
 
 io.on("connection", (socket) => {
   const isAdmin = socket.handshake.query.admin === "true";
@@ -23,19 +19,21 @@ io.on("connection", (socket) => {
     visitorSockets.add(socket.id);
   }
 
-  // Clean up on disconnect
   socket.on("disconnect", () => {
     adminSockets.delete(socket.id);
     visitorSockets.delete(socket.id);
-    emitVisitorList(); // refresh list for support
+    updateVisitorList();
   });
 
-  // Admin joins a specific visitor's room
-  socket.on("admin join", (visitorId) => {
-    socket.join(visitorId); // private room
+  socket.on("admin join", (targetId) => {
+    socket.join(targetId);
   });
 
-  // Admin sends message to specific visitor
+  socket.on("chat message", ({ message, file }) => {
+    const id = socket.id;
+    io.to("admin").emit("chat message", { sender: id, message, file });
+  });
+
   socket.on("admin message", ({ target, message, file }) => {
     if (visitorSockets.has(target)) {
       io.to(target).emit("chat message", {
@@ -46,24 +44,15 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Visitor sends message to admin interface
-  socket.on("chat message", ({ message, file }) => {
-    const senderId = socket.id;
-    io.to("admin").emit("chat message", {
-      sender: senderId,
-      message,
-      file
-    });
-  });
-
-  emitVisitorList(); // refresh list on every connection
+  updateVisitorList();
 });
 
-function emitVisitorList() {
-  const visitors = Array.from(visitorSockets);
-  io.to("admin").emit("visitor list", visitors);
+function updateVisitorList() {
+  const list = Array.from(visitorSockets);
+  io.to("admin").emit("visitor list", list);
 }
 
+const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

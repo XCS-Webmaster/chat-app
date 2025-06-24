@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Support Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h2 class="chat-header">Support Dashboard</h2>
+  <div id="visitorList"></div>
+  <ul id="messages"></ul>
+
+  <form id="form">
+    <input id="input" type="text" autocomplete="off" placeholder="Reply…" />
+    <input type="file" id="fileInput" />
+    <button type="submit">Send</button>
+  </form>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
