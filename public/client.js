@@ -18,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const message = input.value.trim();
     const file = fileInput.files[0];
-
     if (!message && !file) return;
 
     if (file) {

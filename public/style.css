@@ -4,6 +4,7 @@ body {
   padding: 0;
   background: #fff;
   color: #000;
+  box-sizing: border-box;
 }
 
 .chat-header {
@@ -18,24 +19,60 @@ body {
   border-top-right-radius: 10px;
 }
 
+#visitorList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+}
+
+#visitorList button {
+  background-color: #3967d9;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#visitorList button:hover {
+  background-color: #e52238;
+}
+
+#visitorList button.pulse {
+  animation: pulse 1s infinite;
+  border: 2px solid #e52238;
+}
+
+@keyframes pulse {
+  0%, 100% { background-color: #3967d9; }
+  50% { background-color: #e52238; }
+}
+
 #messages {
   list-style: none;
   padding: 16px;
   margin: 0;
-  max-height: 60vh;
   overflow-y: auto;
+  max-height: calc(100vh - 200px);
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
 form {
-  display: flex;
-  gap: 10px;
-  padding: 12px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background: #f4f4f4;
   border-top: 1px solid #ccc;
+  padding: 12px;
+  display: flex;
+  gap: 10px;
   flex-wrap: wrap;
+  z-index: 10;
 }
 
 form input[type="text"] {
@@ -60,11 +97,4 @@ form button {
 
 form button:hover {
   background: #e52238;
-}
-
-#visitorList {
-  display: flex;
-  gap: 8px;
-  padding: 12px;
-  flex-wrap: wrap;
 }

@@ -18,13 +18,18 @@ document.addEventListener("DOMContentLoaded", () => {
         currentTarget = id;
         messages.innerHTML = "";
         socket.emit("admin join", id);
+        btn.classList.remove("pulse");
       };
       visitorList.appendChild(btn);
     });
   });
 
   socket.on("chat message", ({ sender, message, file }) => {
-    if (!currentTarget || (sender !== currentTarget && sender !== "support")) return;
+    if (!currentTarget || (sender !== currentTarget && sender !== "support")) {
+      const btn = [...visitorList.querySelectorAll("button")].find(b => b.textContent === sender);
+      if (btn) btn.classList.add("pulse");
+      return;
+    }
     const li = document.createElement("li");
     li.textContent = file ? `${sender} sent a file` : `${sender}: ${message}`;
     messages.appendChild(li);
@@ -37,7 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const message = input.value.trim();
     const file = fileInput.files[0];
-
     if (!message && !file) return;
 
     if (file) {
