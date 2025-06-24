@@ -1,3 +1,14 @@
+function openBase64Image(base64Data) {
+  const byteString = atob(base64Data.split(',')[1]);
+  const byteArray = new Uint8Array(byteString.length);
+  for (let i = 0; i < byteString.length; i++) {
+    byteArray[i] = byteString.charCodeAt(i);
+  }
+  const blob = new Blob([byteArray], { type: "image/png" });
+  const blobUrl = URL.createObjectURL(blob);
+  window.open(blobUrl, "_blank");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const socket = io();
   const messages = document.getElementById("messages");
@@ -12,7 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sender !== socket.id && sender !== "support") return;
 
     const label = sender === "support" ? "Support" : "Customer";
-
     const li = document.createElement("li");
     const container = document.createElement("div");
     container.className = "message";
@@ -37,9 +47,12 @@ document.addEventListener("DOMContentLoaded", () => {
         actions.className = "image-actions";
 
         const viewBtn = document.createElement("a");
-        viewBtn.href = file;
-        viewBtn.target = "_blank";
+        viewBtn.href = "#";
         viewBtn.textContent = "View";
+        viewBtn.onclick = (e) => {
+          e.preventDefault();
+          openBase64Image(file);
+        };
 
         const dlBtn = document.createElement("a");
         dlBtn.href = file;
@@ -47,10 +60,8 @@ document.addEventListener("DOMContentLoaded", () => {
         dlBtn.textContent = "Download";
 
         actions.append(viewBtn, dlBtn);
-
         bubble.innerHTML = `<strong>${label}:</strong><br>`;
-        bubble.appendChild(img);
-        bubble.appendChild(actions);
+        bubble.append(img, actions);
       } else {
         bubble.innerHTML = `<strong>${label} sent a file</strong><br><a href="${file}" download>Click to download</a>`;
       }

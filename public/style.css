@@ -1,3 +1,82 @@
+:root {
+  color-scheme: light dark;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #1c1c1c;
+    color: #f0f0f0;
+  }
+
+  .chat-header {
+    background-color: #222;
+    color: #f0f0f0;
+  }
+
+  .bubble {
+    background-color: #333;
+    color: #f0f0f0;
+  }
+
+  form {
+    background-color: #222;
+    border-top: 1px solid #444;
+  }
+
+  form input[type="text"],
+  form input[type="file"] {
+    background-color: #444;
+    color: #fff;
+    border: 1px solid #666;
+  }
+
+  form button,
+  .image-actions a {
+    background-color: #555;
+    color: #fff;
+  }
+
+  form button:hover,
+  .image-actions a:hover {
+    background-color: #e52238;
+  }
+
+  #visitorList button {
+    background-color: #3967d9;
+  }
+
+  #visitorList button:hover {
+    background-color: #e52238;
+  }
+}
+
+/* Responsive */
+@media screen and (max-width: 600px) {
+  .bubble {
+    max-width: 100%;
+  }
+
+  form {
+    flex-direction: column;
+  }
+
+  form input[type="text"],
+  form input[type="file"],
+  form button {
+    width: 100%;
+  }
+
+  #visitorList {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  #visitorList button {
+    width: 100%;
+  }
+}
+
 /* Base layout */
 body {
   font-family: Tahoma, sans-serif;
@@ -8,7 +87,6 @@ body {
   box-sizing: border-box;
 }
 
-/* Header */
 .chat-header {
   background-color: #3967d9;
   color: #fff;
@@ -21,7 +99,6 @@ body {
   border-top-right-radius: 10px;
 }
 
-/* Visitor list for admin */
 #visitorList {
   display: flex;
   flex-wrap: wrap;
@@ -53,7 +130,6 @@ body {
   50% { background-color: #e52238; }
 }
 
-/* Chat message list */
 #messages {
   list-style: none;
   padding: 16px;
@@ -65,7 +141,6 @@ body {
   gap: 10px;
 }
 
-/* Form input section */
 form {
   position: fixed;
   bottom: 0;
@@ -104,7 +179,6 @@ form button:hover {
   background: #e52238;
 }
 
-/* Message layout */
 .message {
   display: flex;
   align-items: flex-start;
@@ -119,7 +193,6 @@ form button:hover {
   flex-direction: row-reverse;
 }
 
-/* Avatar */
 .avatar {
   width: 40px;
   height: 40px;
@@ -127,40 +200,10 @@ form button:hover {
   object-fit: cover;
 }
 
-/* Chat bubble */
 .bubble {
   background: #eee;
   padding: 10px;
   border-radius: 10px;
   max-width: 70%;
   word-break: break-word;
-  white-space: pre-wrap;
-}
-
-.bubble img {
-  margin-top: 4px;
-  border-radius: 4px;
-  max-width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* Image actions */
-.image-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-.image-actions a {
-  background: #3967d9;
-  color: #fff;
-  padding: 6px 10px;
-  text-decoration: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
-}
-
-.image-actions a:hover {
-  background: #e52238;
-}
+  white-space: pre-wrap
