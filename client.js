@@ -18,13 +18,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function blobFromDataURI(dataURI) {
+  function blobFromDataURI(dataURI, typeHint = "attachment") {
     const byteString = atob(dataURI.split(',')[1]);
     const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    const ext = mimeString.split("/")[1] || "bin";
     const ab = new ArrayBuffer(byteString.length);
     const ia = new Uint8Array(ab);
     for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-    return new Blob([ab], { type: mimeString });
+    const blob = new Blob([ab], { type: mimeString });
+    blob._downloadName = `${typeHint}.${ext}`;
+    return blob;
   }
 
   function buildMessage(who, text, isCustomer, fileURL) {
@@ -48,12 +51,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (fileURL?.startsWith("data:image/")) {
       const blob = blobFromDataURI(fileURL);
       const url = URL.createObjectURL(blob);
+      const filename = blob._downloadName;
       const viewId = `view-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       bubble.innerHTML = `
-        <img src="${url}" alt="Attachment" style="max-width:100%; max-height:300px; display:block; margin-bottom:8px;">
+        <img src="${url}" alt="Image" style="max-width:100%; max-height:300px; display:block; margin-bottom:8px;">
         <div class="attachment-buttons">
           <button class="btn" id="${viewId}">View</button>
-          <a href="${url}" download class="btn">Download</a>
+          <a href="${url}" download="${filename}" class="btn">Download</a>
         </div>
       `;
       setTimeout(() => {
@@ -79,8 +83,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return li;
   }
 
-  function addMessage(sender, text, isCustomer, fileURL) {
-    const el = buildMessage(sender, text, isCustomer, fileURL);
+  function addMessage(who, text, isCustomer, fileURL) {
+    const el = buildMessage(who, text, isCustomer, fileURL);
     messages.appendChild(el);
     messages.scrollTop = messages.scrollHeight;
   }
@@ -92,6 +96,10 @@ document.addEventListener("DOMContentLoaded", () => {
   socket.on("chat message", (msg) => {
     addMessage("Support", msg.message, false, msg.file);
     play(notifySound);
+  });
+
+  input.addEventListener("input", () => {
+    socket.emit("typing");
   });
 
   form.addEventListener("submit", (e) => {
@@ -114,10 +122,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     input.value = "";
     fileInput.value = "";
-  });
-
-  input.addEventListener("input", () => {
-    socket.emit("typing");
   });
 
   downloadBtn.addEventListener("click", () => {
