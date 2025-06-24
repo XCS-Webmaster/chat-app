@@ -37,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const message = input.value.trim();
     const file = fileInput.files[0];
+
     if (!message && !file) return;
 
     if (file) {
