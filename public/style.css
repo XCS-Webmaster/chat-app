@@ -2,7 +2,7 @@
   color-scheme: light dark;
 }
 
-/* Dark mode */
+/* Dark mode (still respected elsewhere, but not for form or titles) */
 @media (prefers-color-scheme: dark) {
   body {
     background-color: #1c1c1c;
@@ -20,7 +20,6 @@
   }
 
   form {
-    background-color: #222;
     border-top: 1px solid #444;
   }
 
@@ -51,7 +50,7 @@
   }
 }
 
-/* Responsive */
+/* Responsive styles */
 @media screen and (max-width: 600px) {
   .bubble {
     max-width: 100%;
@@ -141,12 +140,13 @@ body {
   gap: 10px;
 }
 
+/* Input form with forced light background */
 form {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: #f4f4f4;
+  background: #f4f4f4 !important;
   border-top: 1px solid #ccc;
   padding: 12px;
   display: flex;
@@ -179,6 +179,7 @@ form button:hover {
   background: #e52238;
 }
 
+/* Message layout */
 .message {
   display: flex;
   align-items: flex-start;
@@ -193,17 +194,57 @@ form button:hover {
   flex-direction: row-reverse;
 }
 
+/* Avatar images */
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 128px;
+  height: 128px;
   border-radius: 50%;
   object-fit: cover;
 }
 
+/* Chat bubble */
 .bubble {
   background: #eee;
   padding: 10px;
   border-radius: 10px;
   max-width: 70%;
   word-break: break-word;
-  white-space: pre-wrap
+  white-space: pre-wrap;
+}
+
+/* Name/title inside bubble */
+.bubble strong {
+  color: black;
+}
+
+/* Inline image preview */
+.bubble img {
+  margin-top: 4px;
+  border-radius: 4px;
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* View + Download button container */
+.image-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* Styled attachment buttons */
+.image-actions a {
+  display: inline-block;
+  padding: 8px 12px;
+  background-color: #3967d9;
+  color: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.image-actions a:hover {
+  background-color: #e52238;
+}
