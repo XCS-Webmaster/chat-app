@@ -32,12 +32,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   socket.on("chat message", ({ sender, message, file }) => {
     if (!currentTarget || (sender !== currentTarget && sender !== "support")) {
-      const btn = [...visitorList.querySelectorAll("button")].find(b => visitorLabels[sender] === b.textContent);
+      const label = visitorLabels[sender] || sender;
+      const btn = [...visitorList.querySelectorAll("button")].find(b => b.textContent === label);
       if (btn) btn.classList.add("pulse");
       return;
     }
 
-    const label = visitorLabels[sender] || sender;
+    const label = sender === "support" ? "Support" : visitorLabels[sender] || sender;
     const li = document.createElement("li");
     const container = document.createElement("div");
     container.className = "message";
@@ -46,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const avatar = document.createElement("img");
     avatar.className = "avatar";
     avatar.src = sender === "support" ? AVATAR_SUPPORT : AVATAR_CUSTOMER;
-    avatar.alt = sender;
+    avatar.alt = label;
 
     const bubble = document.createElement("div");
     bubble.className = "bubble";
@@ -57,7 +58,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const img = document.createElement("img");
         img.src = file;
         img.alt = "Attachment";
-        img.style.maxWidth = "200px";
 
         const actions = document.createElement("div");
         actions.className = "image-actions";

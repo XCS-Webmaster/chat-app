@@ -11,6 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
   socket.on("chat message", ({ sender, message, file }) => {
     if (sender !== socket.id && sender !== "support") return;
 
+    const label = sender === "support" ? "Support" : "Customer";
+
     const li = document.createElement("li");
     const container = document.createElement("div");
     container.className = "message";
@@ -19,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const avatar = document.createElement("img");
     avatar.className = "avatar";
     avatar.src = sender === "support" ? AVATAR_SUPPORT : AVATAR_ME;
-    avatar.alt = sender;
+    avatar.alt = label;
 
     const bubble = document.createElement("div");
     bubble.className = "bubble";
@@ -30,8 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const img = document.createElement("img");
         img.src = file;
         img.alt = "Attachment";
-        img.style.maxWidth = "200px";
-        img.style.display = "block";
 
         const actions = document.createElement("div");
         actions.className = "image-actions";
@@ -48,14 +48,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         actions.append(viewBtn, dlBtn);
 
-        bubble.innerHTML = `<strong>${sender}:</strong><br>`;
+        bubble.innerHTML = `<strong>${label}:</strong><br>`;
         bubble.appendChild(img);
         bubble.appendChild(actions);
       } else {
-        bubble.innerHTML = `<strong>${sender} sent a file</strong><br><a href="${file}" download>Click to download</a>`;
+        bubble.innerHTML = `<strong>${label} sent a file</strong><br><a href="${file}" download>Click to download</a>`;
       }
     } else {
-      bubble.textContent = `${sender}: ${message}`;
+      bubble.textContent = `${label}: ${message}`;
     }
 
     container.append(avatar, bubble);
