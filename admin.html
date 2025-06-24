@@ -3,28 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width" />
-  <title>Admin Chat</title>
+  <title>Admin Panel</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="loading">
   <div id="visitorList"></div>
   <ul id="messages"></ul>
+
   <div class="controls">
     <label><input type="checkbox" id="muteToggle" /> Mute</label>
     <button id="downloadBtn">Download</button>
   </div>
+
   <form id="form">
     <div>
-      <input id="input" type="text" placeholder="Type a message…" autocomplete="off" />
+      <input id="input" type="text" placeholder="Type your reply…" autocomplete="off" />
     </div>
     <input type="file" id="fileInput" />
     <button type="submit">Send</button>
   </form>
+
   <audio id="notifySound" src="notify.mp3" preload="auto"></audio>
   <audio id="firstMessageSound" src="first-msg.mp3" preload="auto"></audio>
-  <div id="fallbackLoader" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); font-weight: bold; font-size: 1.2rem; color: gray;">
-    Loading chat…
+
+  <div id="fallbackLoader" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2rem; font-weight: bold; color: gray;">
+    Loading admin panel…
   </div>
+
   <script src="/socket.io/socket.io.js"></script>
   <script src="admin.js" defer></script>
 </body>
