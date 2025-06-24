@@ -1,15 +1,24 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Chat App</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Live Chat</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
+    #messages { flex: 1; overflow-y: scroll; padding: 1em; background: #f4f4f4; }
+    #form { display: flex; padding: 1em; background: #fff; border-top: 1px solid #ccc; }
+    input { flex: 1; padding: 0.5em; font-size: 16px; }
+    button { padding: 0.5em 1em; }
+    .message { margin-bottom: 0.5em; }
+  </style>
 </head>
 <body>
-  <ul id="messages"></ul>
+  <div id="messages"></div>
   <form id="form">
-    <input id="input" autocomplete="off" /><button>Send</button>
+    <input id="input" autocomplete="off" placeholder="Type a message..." />
+    <button>Send</button>
   </form>
+
   <script src="/socket.io/socket.io.js"></script>
   <script src="client.js"></script>
 </body>
