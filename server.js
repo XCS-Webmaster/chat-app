@@ -1,71 +1,68 @@
 const express = require("express");
 const http = require("http");
-const { Server } = require("socket.io");
+const fs = require("fs");
 const path = require("path");
-const { knex, init } = require("./db");
+const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, "public")));
-init();
 
-const visitors = new Map();
+const MESSAGE_FILE = path.join(__dirname, "messages.json");
+
+function loadMessages() {
+  if (!fs.existsSync(MESSAGE_FILE)) return [];
+  return JSON.parse(fs.readFileSync(MESSAGE_FILE, "utf8"));
+}
+function saveMessage(msg) {
+  const messages = loadMessages();
+  messages.push(msg);
+  fs.writeFileSync(MESSAGE_FILE, JSON.stringify(messages, null, 2));
+}
+
+let visitors = new Set();
 
 io.on("connection", (socket) => {
   const isAdmin = socket.handshake.query?.admin === "true";
 
-  if (isAdmin) {
-    console.log("🔧 Admin connected:", socket.id);
-  } else {
-    visitors.set(socket.id, {});
-    io.emit("visitor list", [...visitors.keys()]);
+  if (!isAdmin) {
+    visitors.add(socket.id);
+    io.emit("visitor list", Array.from(visitors));
+
+    const history = loadMessages().filter(
+      m => m.sender === socket.id || m.receiver === socket.id
+    );
+    history.forEach(msg => socket.emit("chat message", msg));
   }
 
-  socket.on("admin join", async (visitorId) => {
+  socket.on("admin join", (visitorId) => {
     socket.join(visitorId);
-    const history = await knex("messages")
-      .where("sender", visitorId)
-      .orWhere("receiver", visitorId)
-      .orderBy("timestamp");
-
-    history.forEach((msg) => {
-      socket.emit("chat message", {
-        from: msg.sender === "support" ? "support" : visitorId,
-        message: msg.message,
-        file: msg.file,
-      });
-    });
+    const history = loadMessages().filter(
+      m => m.sender === visitorId || m.receiver === visitorId
+    );
+    history.forEach(msg => socket.emit("chat message", msg));
   });
 
-  socket.on("chat message", async ({ message, file }) => {
-    await knex("messages").insert({
-      sender: socket.id,
-      message,
-      file,
-    });
-    io.emit("chat message", { from: socket.id, message, file });
+  socket.on("chat message", ({ message, file }) => {
+    const msg = { sender: socket.id, message, file };
+    saveMessage(msg);
+    io.emit("chat message", msg);
   });
 
-  socket.on("admin message", async ({ target, message, file }) => {
-    await knex("messages").insert({
-      sender: "support",
-      receiver: target,
-      message,
-      file,
-    });
-    io.to(target).emit("chat message", { from: "support", message, file });
+  socket.on("admin message", ({ target, message, file }) => {
+    const msg = { sender: "support", receiver: target, message, file };
+    saveMessage(msg);
+    io.to(target).emit("chat message", msg);
   });
 
   socket.on("disconnect", () => {
-    if (!isAdmin) {
-      visitors.delete(socket.id);
-      io.emit("visitor list", [...visitors.keys()]);
-    }
+    visitors.delete(socket.id);
+    io.emit("visitor list", Array.from(visitors));
   });
 });
 
 server.listen(3000, () => {
-  console.log("🚀 http://localhost:3000");
+  console.log("✅ Chat server running at http://localhost:3000");
 });

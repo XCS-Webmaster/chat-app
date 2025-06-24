@@ -6,9 +6,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("input");
   const fileInput = document.getElementById("fileInput");
 
-  socket.on("chat message", ({ from, message, file }) => {
+  socket.on("chat message", ({ sender, message, file }) => {
+    if (sender !== socket.id && sender !== "support") return;
     const li = document.createElement("li");
-    li.textContent = file ? `${from} sent a file` : `${from}: ${message}`;
+    li.textContent = file ? `${sender} sent a file` : `${sender}: ${message}`;
     messages.appendChild(li);
     messages.scrollTop = messages.scrollHeight;
   });
@@ -17,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const message = input.value.trim();
     const file = fileInput.files[0];
-
     if (!message && !file) return;
 
     if (file) {
