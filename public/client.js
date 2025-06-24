@@ -36,6 +36,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const bubble = document.createElement("div");
     bubble.className = "bubble";
 
+    const labelSpan = document.createElement("span");
+    labelSpan.textContent = `${label}: `;
+    bubble.appendChild(labelSpan);
+
     if (file) {
       const isImage = file.startsWith("data:image/");
       if (isImage) {
@@ -60,13 +64,17 @@ document.addEventListener("DOMContentLoaded", () => {
         dlBtn.textContent = "Download";
 
         actions.append(viewBtn, dlBtn);
-        bubble.innerHTML = `<strong>${label}:</strong><br>`;
         bubble.append(img, actions);
       } else {
-        bubble.innerHTML = `<strong>${label} sent a file</strong><br><a href="${file}" download>Click to download</a>`;
+        const link = document.createElement("a");
+        link.href = file;
+        link.download = "attachment";
+        link.textContent = "Click to download";
+        bubble.appendChild(document.createElement("br"));
+        bubble.appendChild(link);
       }
     } else {
-      bubble.textContent = `${label}: ${message}`;
+      bubble.append(document.createTextNode(message));
     }
 
     container.append(avatar, bubble);
