@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const messages = document.getElementById("messages");
   const visitorList = document.getElementById("visitorList");
   const notifySound = document.getElementById("notifySound");
-  const firstSound = document.getElementById("firstMessageSound");
+  const firstMessageSound = document.getElementById("firstMessageSound");
   const muteToggle = document.getElementById("muteToggle");
   const downloadBtn = document.getElementById("downloadBtn");
 
@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function blobFromDataURI(dataURI, fallback = "attachment") {
+  function blobFromDataURI(dataURI, name = "attachment") {
     const byteString = atob(dataURI.split(",")[1]);
     const mime = dataURI.split(",")[0].split(":")[1].split(";")[0];
     const ext = mime.split("/")[1] || "bin";
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const ia = new Uint8Array(ab);
     for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
     const blob = new Blob([ab], { type: mime });
-    blob._downloadName = `${fallback}.${ext}`;
+    blob._downloadName = `${name}.${ext}`;
     return blob;
   }
 
@@ -131,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btn && !btn.classList.contains("active")) btn.classList.add("pulse");
 
     if (!alertFlags[msg.from]) {
-      if (!isActive) play(firstSound);
+      if (!isActive) play(firstMessageSound);
       alertFlags[msg.from] = true;
     } else if (isActive) {
       play(notifySound);
@@ -200,9 +200,10 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // Dark mode via parent messaging
-  window.addEventListener("message", (event) => {
-    const theme = event.data?.theme;
+  window.addEventListener("message", (e) => {
+    const theme = e.data?.theme;
     if (theme === "dark") document.body.classList.add("dark");
     else if (theme === "light") document.body.classList.remove("dark");
   });
+  window.parent.postMessage("theme-request", "*");
 });
