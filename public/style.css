@@ -71,7 +71,7 @@ form {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #f4f4f4;
+  background: #efefef;
   border-top: 1px solid #ccc;
   padding: 12px;
   display: flex;
@@ -126,8 +126,8 @@ form button:hover {
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 128px;
+  height: 128px;
   border-radius: 50%;
   object-fit: cover;
 }
