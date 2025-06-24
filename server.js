@@ -1,81 +1,69 @@
 const express = require("express");
-const path = require("path");
-const fs = require("fs");
-const http = require("http");
-const { Server } = require("socket.io");
-
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
-
-const PUBLIC_DIR = path.join(__dirname, "public");
-const MESSAGE_FILE = path.join(__dirname, "messages.json");
-
-function loadMessages() {
-  try {
-    const data = fs.readFileSync(MESSAGE_FILE, "utf8");
-    return JSON.parse(data || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function saveMessage(msg) {
-  const history = loadMessages();
-  history.push(msg);
-  fs.writeFileSync(MESSAGE_FILE, JSON.stringify(history, null, 2));
-}
-
-let activeVisitors = new Set();
-
-app.use(express.static(path.join(__dirname, "public")));
-
-io.on("connection", (socket) => {
-  const isAdmin = socket.handshake.query?.admin === "true";
-
-  if (!isAdmin) {
-    activeVisitors.add(socket.id);
-    io.emit("visitor list", Array.from(activeVisitors));
-
-    const messages = loadMessages().filter(
-      m => m.sender === socket.id || m.receiver === socket.id
-    );
-    messages.forEach(msg => socket.emit("chat message", msg));
-  }
-
-  socket.on("admin join", (visitorId) => {
-    socket.join(visitorId);
-
-    const messages = loadMessages().filter(
-      m => m.sender === visitorId || m.receiver === visitorId
-    );
-    messages.forEach(msg => socket.emit("chat message", msg));
-  });
-
-  socket.on("chat message", ({ message, file }) => {
-    const msg = { sender: socket.id, message, file };
-    saveMessage(msg);
-    io.emit("chat message", msg);
-  });
-
-  socket.on("admin message", ({ target, message, file }) => {
-    const msg = { sender: "support", receiver: target, message, file };
-    saveMessage(msg);
-    io.to(target).emit("chat message", msg);
-  });
-
-  socket.on("disconnect", () => {
-    if (!isAdmin) {
-      activeVisitors.delete(socket.id);
-      io.emit("visitor list", Array.from(activeVisitors));
-    }
-  });
-});
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
+const path = require("path");
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`🚀 Chat running at http://localhost:${PORT}`);
+
+// Serve static files
+app.use(express.static(path.join(__dirname, "public")));
+
+// Track sockets
+const adminSockets = new Set();
+const visitorSockets = new Set();
+
+io.on("connection", (socket) => {
+  const isAdmin = socket.handshake.query.admin === "true";
+
+  if (isAdmin) {
+    adminSockets.add(socket.id);
+    socket.join("admin");
+  } else {
+    visitorSockets.add(socket.id);
+  }
+
+  // Clean up on disconnect
+  socket.on("disconnect", () => {
+    adminSockets.delete(socket.id);
+    visitorSockets.delete(socket.id);
+    emitVisitorList(); // refresh list for support
+  });
+
+  // Admin joins a specific visitor's room
+  socket.on("admin join", (visitorId) => {
+    socket.join(visitorId); // private room
+  });
+
+  // Admin sends message to specific visitor
+  socket.on("admin message", ({ target, message, file }) => {
+    if (visitorSockets.has(target)) {
+      io.to(target).emit("chat message", {
+        sender: "support",
+        message,
+        file
+      });
+    }
+  });
+
+  // Visitor sends message to admin interface
+  socket.on("chat message", ({ message, file }) => {
+    const senderId = socket.id;
+    io.to("admin").emit("chat message", {
+      sender: senderId,
+      message,
+      file
+    });
+  });
+
+  emitVisitorList(); // refresh list on every connection
 });
 
+function emitVisitorList() {
+  const visitors = Array.from(visitorSockets);
+  io.to("admin").emit("visitor list", visitors);
+}
 
-app.use(express.static(path.join(__dirname, "public")));
+http.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
