@@ -7,7 +7,53 @@ document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("input");
   const fileInput = document.getElementById("fileInput");
 
+  const AVATAR_SUPPORT = "support-avatar.png";
+  const AVATAR_CUSTOMER = "customer-avatar.png";
+
   let currentTarget = null;
+
+  function renderMessage({ sender, message, file }) {
+    if (!currentTarget || (sender !== currentTarget && sender !== "support")) {
+      const btn = [...visitorList.querySelectorAll("button")].find(b => b.textContent === sender);
+      if (btn) btn.classList.add("pulse");
+      return;
+    }
+
+    const li = document.createElement("li");
+    const container = document.createElement("div");
+    container.className = "message";
+
+    const avatar = document.createElement("img");
+    avatar.className = "avatar";
+    avatar.src = sender === "support" ? AVATAR_SUPPORT : AVATAR_CUSTOMER;
+    avatar.alt = sender;
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+
+    if (file) {
+      const isImage = file.startsWith("data:image/");
+      if (isImage) {
+        bubble.innerHTML = `<strong>${sender}:</strong><br>`;
+        const img = document.createElement("img");
+        img.src = file;
+        img.alt = "Attachment";
+        img.style.maxWidth = "200px";
+        img.style.display = "block";
+        bubble.appendChild(img);
+      } else {
+        bubble.innerHTML = `<strong>${sender} sent a file</strong><br><a href="${file}" download>Click to download</a>`;
+      }
+    } else {
+      bubble.textContent = `${sender}: ${message}`;
+    }
+
+    container.appendChild(avatar);
+    container.appendChild(bubble);
+    li.appendChild(container);
+    messages.appendChild(li);
+    messages.scrollTop = messages.scrollHeight;
+  }
 
   socket.on("visitor list", (ids) => {
     visitorList.innerHTML = "";
@@ -24,39 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  socket.on("chat message", ({ sender, message, file }) => {
-    if (!currentTarget || (sender !== currentTarget && sender !== "support")) {
-      const btn = [...visitorList.querySelectorAll("button")].find(b => b.textContent === sender);
-      if (btn) btn.classList.add("pulse");
-      return;
-    }
-
-    const li = document.createElement("li");
-
-    if (file) {
-      const isImage = file.startsWith("data:image/");
-      if (isImage) {
-        const img = document.createElement("img");
-        img.src = file;
-        img.alt = "Image";
-        img.style.maxWidth = "200px";
-        img.style.display = "block";
-        li.innerHTML = `<strong>${sender}:</strong><br />`;
-        li.appendChild(img);
-      } else {
-        const link = document.createElement("a");
-        link.href = file;
-        link.download = "attachment";
-        link.textContent = `${sender} sent a file (click to download)`;
-        li.appendChild(link);
-      }
-    } else {
-      li.textContent = `${sender}: ${message}`;
-    }
-
-    messages.appendChild(li);
-    messages.scrollTop = messages.scrollHeight;
-  });
+  socket.on("chat message", renderMessage);
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -64,6 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const message = input.value.trim();
     const file = fileInput.files[0];
+
     if (!message && !file) return;
 
     if (file) {
