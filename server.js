@@ -28,7 +28,7 @@ function saveMessage(msg) {
 
 let activeVisitors = new Set();
 
-app.use(express.static(PUBLIC_DIR));
+app.use(express.static(path.join(__dirname, "public")));
 
 io.on("connection", (socket) => {
   const isAdmin = socket.handshake.query?.admin === "true";
@@ -76,3 +76,6 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`🚀 Chat running at http://localhost:${PORT}`);
 });
+
+
+app.use(express.static(path.join(__dirname, "public")));
