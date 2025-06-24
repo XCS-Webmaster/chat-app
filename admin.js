@@ -5,11 +5,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("input");
   const fileInput = document.getElementById("fileInput");
   const messages = document.getElementById("messages");
+  const visitorList = document.getElementById("visitorList");
   const notifySound = document.getElementById("notifySound");
-  const firstMessageSound = document.getElementById("firstMessageSound");
+  const firstSound = document.getElementById("firstMessageSound");
   const muteToggle = document.getElementById("muteToggle");
   const downloadBtn = document.getElementById("downloadBtn");
-  const visitorList = document.getElementById("visitorList");
 
   const SUPPORT_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Support-Avatar.png";
   const CUSTOMER_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Customer-Avatar.png";
@@ -18,19 +18,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const chatHistory = {};
   const alertFlags = {};
 
-  function playSound(sound) {
-    if (muteToggle.checked || !sound) return;
-    sound.currentTime = 0;
-    sound.play().catch(() => {});
+  function play(sound) {
+    if (!muteToggle.checked && sound) {
+      sound.currentTime = 0;
+      sound.play().catch(() => {});
+    }
   }
 
-  function dataURItoBlob(dataURI) {
-    const byteString = atob(dataURI.split(',')[1]);
-    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+  function blobFromDataURI(dataURI, fallback = "attachment") {
+    const byteString = atob(dataURI.split(",")[1]);
+    const mime = dataURI.split(",")[0].split(":")[1].split(";")[0];
+    const ext = mime.split("/")[1] || "bin";
     const ab = new ArrayBuffer(byteString.length);
     const ia = new Uint8Array(ab);
     for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-    return new Blob([ab], { type: mimeString });
+    const blob = new Blob([ab], { type: mime });
+    blob._downloadName = `${fallback}.${ext}`;
+    return blob;
   }
 
   function buildMessage(who, text, isCustomer, fileURL) {
@@ -52,15 +56,29 @@ document.addEventListener("DOMContentLoaded", () => {
     bubble.className = "bubble";
 
     if (fileURL?.startsWith("data:image/")) {
-      const blob = dataURItoBlob(fileURL);
-      const blobURL = URL.createObjectURL(blob);
+      const blob = blobFromDataURI(fileURL);
+      const url = URL.createObjectURL(blob);
+      const filename = blob._downloadName;
+      const viewId = `view-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       bubble.innerHTML = `
-        <img src="${blobURL}" alt="Attachment" style="max-width:100%; max-height:300px;">
+        <img src="${url}" alt="Image" style="max-width:100%; max-height:300px; display:block; margin-bottom:8px;">
         <div class="attachment-buttons">
-          <button class="btn" onclick="window.open('${blobURL}', '_blank')">View</button>
-          <a href="${blobURL}" download class="btn">Download</a>
+          <button class="btn" id="${viewId}">View</button>
+          <a href="${url}" download="${filename}" class="btn">Download</a>
         </div>
       `;
+      setTimeout(() => {
+        const btn = document.getElementById(viewId);
+        if (btn) {
+          btn.onclick = () => {
+            const a = document.createElement("a");
+            a.href = url;
+            a.target = "_blank";
+            a.rel = "noopener";
+            a.click();
+          };
+        }
+      }, 0);
     } else if (fileURL) {
       bubble.innerHTML = `<a href="${fileURL}" target="_blank" class="btn">View Attachment</a>`;
     } else {
@@ -72,50 +90,51 @@ document.addEventListener("DOMContentLoaded", () => {
     return li;
   }
 
-  function updateVisitorList(visitors) {
-    const list = [...new Set(visitors.filter(v => v && v !== "admin"))];
-    visitorList.innerHTML = "";
-    list.forEach((id, index) => {
-      const wrapper = document.createElement("div");
-      wrapper.className = "visitor-btn-group";
+  function addToHistory(id, el) {
+    if (!chatHistory[id]) chatHistory[id] = [];
+    chatHistory[id].push(el.outerHTML);
+  }
 
-      const btn = document.createElement("button");
-      btn.textContent = `Visitor ${index + 1}`;
-      btn.dataset.visitorId = id;
-      btn.addEventListener("click", () => {
-        currentTarget = id;
-        messages.innerHTML = (chatHistory[id] || []).join("");
-        alertFlags[id] = false;
-        document.querySelectorAll("#visitorList button").forEach(b => b.classList.remove("active", "pulse"));
-        btn.classList.add("active");
-        socket.emit("admin join", id);
-      });
-
-      wrapper.appendChild(btn);
-      visitorList.appendChild(wrapper);
-    });
+  function activateVisitorTab(id) {
+    currentTarget = id;
+    messages.innerHTML = (chatHistory[id] || []).join("");
+    alertFlags[id] = false;
+    document.querySelectorAll("#visitorList button").forEach(b => b.classList.remove("active", "pulse"));
+    const btn = visitorList.querySelector(`button[data-visitor-id="${id}"]`);
+    if (btn) btn.classList.add("active");
+    socket.emit("admin join", id);
   }
 
   socket.on("visitor list", (visitors) => {
-    updateVisitorList(visitors);
+    const list = [...new Set(visitors.filter(v => v && v !== "admin"))];
+    visitorList.innerHTML = "";
+    list.forEach((id, index) => {
+      const btn = document.createElement("button");
+      btn.textContent = `Visitor ${index + 1}`;
+      btn.dataset.visitorId = id;
+      btn.onclick = () => activateVisitorTab(id);
+      const wrapper = document.createElement("div");
+      wrapper.className = "visitor-btn-group";
+      wrapper.appendChild(btn);
+      visitorList.appendChild(wrapper);
+    });
   });
 
   socket.on("chat message", (msg) => {
     if (!msg.from || msg.from === "support") return;
 
     const el = buildMessage("Customer", msg.message, true, msg.file);
-    if (!chatHistory[msg.from]) chatHistory[msg.from] = [];
-    chatHistory[msg.from].push(el.outerHTML);
+    addToHistory(msg.from, el);
 
     const isActive = msg.from === currentTarget;
     const btn = visitorList.querySelector(`button[data-visitor-id="${msg.from}"]`);
     if (btn && !btn.classList.contains("active")) btn.classList.add("pulse");
 
     if (!alertFlags[msg.from]) {
-      if (!isActive) playSound(firstMessageSound);
+      if (!isActive) play(firstSound);
       alertFlags[msg.from] = true;
     } else if (isActive) {
-      playSound(notifySound);
+      play(notifySound);
     }
 
     if (isActive) {
@@ -137,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  form.addEventListener("submit", (e) => {
+  form.onsubmit = (e) => {
     e.preventDefault();
     if (!currentTarget) return;
 
@@ -150,8 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
       reader.onload = () => {
         socket.emit("admin message", { target: currentTarget, message, file: reader.result });
         const el = buildMessage("Support", message || "📎 File", false, reader.result);
-        if (!chatHistory[currentTarget]) chatHistory[currentTarget] = [];
-        chatHistory[currentTarget].push(el.outerHTML);
+        addToHistory(currentTarget, el);
         messages.appendChild(el);
         messages.scrollTop = messages.scrollHeight;
       };
@@ -159,17 +177,16 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       socket.emit("admin message", { target: currentTarget, message });
       const el = buildMessage("Support", message, false);
-      if (!chatHistory[currentTarget]) chatHistory[currentTarget] = [];
-      chatHistory[currentTarget].push(el.outerHTML);
+      addToHistory(currentTarget, el);
       messages.appendChild(el);
       messages.scrollTop = messages.scrollHeight;
     }
 
     input.value = "";
     fileInput.value = "";
-  });
+  };
 
-  downloadBtn.addEventListener("click", () => {
+  downloadBtn.onclick = () => {
     const lines = Array.from(messages.querySelectorAll("li")).map(li => {
       const who = li.classList.contains("customer") ? "Customer" : "Support";
       const text = li.querySelector(".bubble")?.textContent || "";
@@ -180,7 +197,12 @@ document.addEventListener("DOMContentLoaded", () => {
     a.href = URL.createObjectURL(blob);
     a.download = "admin-chat-log.txt";
     a.click();
-  });
+  };
 
-  document.body.classList.remove("loading");
+  // Dark mode via parent messaging
+  window.addEventListener("message", (event) => {
+    const theme = event.data?.theme;
+    if (theme === "dark") document.body.classList.add("dark");
+    else if (theme === "light") document.body.classList.remove("dark");
+  });
 });

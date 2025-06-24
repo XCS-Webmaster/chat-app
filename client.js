@@ -18,15 +18,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function blobFromDataURI(dataURI, typeHint = "attachment") {
+  function blobFromDataURI(dataURI, fallbackName = "attachment") {
     const byteString = atob(dataURI.split(',')[1]);
-    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-    const ext = mimeString.split("/")[1] || "bin";
+    const mime = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    const ext = mime.split("/")[1] || "bin";
     const ab = new ArrayBuffer(byteString.length);
     const ia = new Uint8Array(ab);
     for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-    const blob = new Blob([ab], { type: mimeString });
-    blob._downloadName = `${typeHint}.${ext}`;
+    const blob = new Blob([ab], { type: mime });
+    blob._downloadName = `${fallbackName}.${ext}`;
     return blob;
   }
 
@@ -83,8 +83,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return li;
   }
 
-  function addMessage(who, text, isCustomer, fileURL) {
-    const el = buildMessage(who, text, isCustomer, fileURL);
+  function addMessage(sender, text, isCustomer, fileURL) {
+    const el = buildMessage(sender, text, isCustomer, fileURL);
     messages.appendChild(el);
     messages.scrollTop = messages.scrollHeight;
   }
@@ -137,6 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
     a.click();
   });
 
+  // Dark mode via parent message
   window.addEventListener("message", (event) => {
     const theme = event.data?.theme;
     if (theme === "dark") document.body.classList.add("dark");
