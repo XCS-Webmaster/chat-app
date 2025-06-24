@@ -1,124 +1,25 @@
 body {
+  font-family: sans-serif;
   margin: 0;
   padding: 0;
-  font-family: Tahoma, sans-serif;
 }
-
-.chat-header {
-  background-color: #3967d9;
-  color: white;
-  padding: 12px;
-  text-align: center;
-  font-size: 1.5rem;
-}
-
-#messages {
-  list-style: none;
-  padding: 16px;
-  margin: 0;
-  max-height: 70vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.message {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.message.left {
-  flex-direction: row;
-}
-
-.message.right {
-  flex-direction: row-reverse;
-}
-
-.avatar {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.bubble {
-  background: #f0f0f0;
-  padding: 10px;
-  border-radius: 10px;
-  max-width: 70%;
-  word-break: break-word;
-  white-space: pre-wrap;
-}
-
-.bubble img {
-  margin-top: 6px;
-  border-radius: 6px;
-  max-width: 100%;
-}
-
 form {
+  background: #eee;
+  padding: 10px;
   position: fixed;
   bottom: 0;
   width: 100%;
-  background: #fafafa;
-  border-top: 1px solid #ccc;
-  padding: 10px;
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
 }
-
-form input[type="text"],
-form input[type="file"] {
+input {
   flex: 1;
   padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
 }
-
-form button {
-  background-color: #3967d9;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 10px 16px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-form button:hover {
-  background-color: #e52238;
-}
-
-#visitorList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+button {
   padding: 10px;
 }
-
-#visitorList button {
-  background-color: #3967d9;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-@media screen and (max-width: 600px) {
-  .bubble { max-width: 100%; }
-  form {
-    flex-direction: column;
-  }
-  form input, form button {
-    width: 100%;
-  }
-  .avatar {
-    width: 70px;
-    height: 70px;
-  }
+ul {
+  list-style: none;
+  padding: 20px;
+  margin-bottom: 60px;
 }
