@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const socket = io();
+
   const form = document.getElementById("form");
   const input = document.getElementById("input");
   const fileInput = document.getElementById("fileInput");
@@ -10,6 +11,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const SUPPORT_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Support-Avatar.png";
   const CUSTOMER_AVATAR = "https://xpresscomputersolutions.com/wp-content/uploads/Customer-Avatar.png";
+
+  // Inject header
+  const header = document.createElement("h2");
+  header.textContent = "Chat with Support";
+  header.className = "chat-header";
+  document.body.prepend(header);
+
+  const style = document.createElement("style");
+  style.textContent = `
+    .chat-header {
+      background-color: #3967d9;
+      color: #ffffff;
+      font-family: Tahoma, sans-serif;
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin: 0;
+      padding: 12px 0;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+    }
+  `;
+  document.head.appendChild(style);
 
   function play(sound) {
     if (!muteToggle.checked && sound) {
@@ -137,10 +161,11 @@ document.addEventListener("DOMContentLoaded", () => {
     a.click();
   });
 
-  // Dark mode via parent message
+  // Dark mode sync via parent
   window.addEventListener("message", (event) => {
     const theme = event.data?.theme;
     if (theme === "dark") document.body.classList.add("dark");
     else if (theme === "light") document.body.classList.remove("dark");
   });
+  window.parent.postMessage("theme-request", "*");
 });
