@@ -3,26 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width" />
-  <title>Customer Chat</title>
+  <title>Chat with Support</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="loading">
+<body>
+  <h2 class="chat-header">Chat with Support</h2>
+
   <ul id="messages"></ul>
 
-  <div class="controls">
-    <label><input type="checkbox" id="muteToggle" /> Mute</label>
-    <button id="downloadBtn">Download</button>
-  </div>
-
   <form id="form">
-    <div>
-      <input id="input" type="text" placeholder="Type your message…" autocomplete="off" />
-    </div>
+    <input id="input" type="text" placeholder="Type a message…" autocomplete="off" />
     <input type="file" id="fileInput" />
     <button type="submit">Send</button>
   </form>
-
-  <audio id="notifySound" src="notify.mp3" preload="auto"></audio>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="client.js" defer></script>

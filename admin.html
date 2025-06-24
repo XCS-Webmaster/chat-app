@@ -3,24 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width" />
-  <title>Admin Chat</title>
+  <title>Support Dashboard</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    body {
-      font-family: Tahoma, sans-serif;
-    }
-    .chat-header {
-      background-color: #3967d9;
-      color: #ffffff;
-      font-size: 1.5rem;
-      font-weight: bold;
-      text-align: center;
-      margin: 0;
-      padding: 12px 0;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
-    }
-  </style>
 </head>
 <body>
   <h2 class="chat-header">Support Dashboard</h2>
@@ -28,21 +12,11 @@
   <div id="visitorList"></div>
   <ul id="messages"></ul>
 
-  <div class="controls">
-    <label><input type="checkbox" id="muteToggle" /> Mute</label>
-    <button id="downloadBtn">Download</button>
-  </div>
-
   <form id="form">
-    <div>
-      <input id="input" type="text" placeholder="Type your reply…" autocomplete="off" />
-    </div>
+    <input id="input" type="text" placeholder="Reply…" autocomplete="off" />
     <input type="file" id="fileInput" />
     <button type="submit">Send</button>
   </form>
-
-  <audio id="notifySound" src="notify.mp3" preload="auto"></audio>
-  <audio id="firstMessageSound" src="first-msg.mp3" preload="auto"></audio>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="admin.js" defer></script>

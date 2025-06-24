@@ -2,15 +2,15 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
+const { knex, init } = require("./db");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Serve static files
-app.use(express.static(path.join(__dirname, "public"))); // put HTML/JS/CSS in /public
+app.use(express.static(path.join(__dirname, "public")));
+init();
 
-// Store mapping of socket.id to user type
 const visitors = new Map();
 
 io.on("connection", (socket) => {
@@ -19,52 +19,53 @@ io.on("connection", (socket) => {
   if (isAdmin) {
     console.log("🔧 Admin connected:", socket.id);
   } else {
-    visitors.set(socket.id, { id: socket.id });
-    console.log("🧑‍💻 Visitor connected:", socket.id);
-
-    // Notify admin of new visitor
-    const activeVisitors = [...visitors.keys()];
-    io.emit("visitor list", activeVisitors);
+    visitors.set(socket.id, {});
+    io.emit("visitor list", [...visitors.keys()]);
   }
 
-  // Admin joins specific visitor's room
-  socket.on("admin join", (visitorId) => {
-    if (isAdmin) {
-      socket.join(visitorId);
-    }
+  socket.on("admin join", async (visitorId) => {
+    socket.join(visitorId);
+    const history = await knex("messages")
+      .where("sender", visitorId)
+      .orWhere("receiver", visitorId)
+      .orderBy("timestamp");
+
+    history.forEach((msg) => {
+      socket.emit("chat message", {
+        from: msg.sender === "support" ? "support" : visitorId,
+        message: msg.message,
+        file: msg.file,
+      });
+    });
   });
 
-  // Customer typing
-  socket.on("typing", () => {
-    socket.broadcast.emit("typing", { from: socket.id });
+  socket.on("chat message", async ({ message, file }) => {
+    await knex("messages").insert({
+      sender: socket.id,
+      message,
+      file,
+    });
+    io.emit("chat message", { from: socket.id, message, file });
   });
 
-  // Customer message
-  socket.on("chat message", ({ message, file }) => {
-    const payload = { message, file, from: socket.id };
-    io.emit("chat message", payload);
+  socket.on("admin message", async ({ target, message, file }) => {
+    await knex("messages").insert({
+      sender: "support",
+      receiver: target,
+      message,
+      file,
+    });
+    io.to(target).emit("chat message", { from: "support", message, file });
   });
 
-  // Admin message
-  socket.on("admin message", ({ target, message, file }) => {
-    const payload = { message, file, from: "support" };
-    io.to(target).emit("chat message", payload);
-  });
-
-  // Handle disconnect
   socket.on("disconnect", () => {
     if (!isAdmin) {
       visitors.delete(socket.id);
-      console.log("❌ Visitor disconnected:", socket.id);
       io.emit("visitor list", [...visitors.keys()]);
-    } else {
-      console.log("⚠️ Admin disconnected:", socket.id);
     }
   });
 });
 
-// Start server
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+server.listen(3000, () => {
+  console.log("🚀 http://localhost:3000");
 });
