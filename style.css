@@ -73,6 +73,7 @@ li.support {
   word-break: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
+  display: inline-block;
 }
 
 .attachment-buttons {
@@ -112,7 +113,7 @@ button,
   border: none;
   border-radius: 10px;
   padding: 10px 14px;
-  font-weight: bold;
+  font-weight: normal;
   cursor: pointer;
   transition: background 0.3s;
   text-decoration: none;
