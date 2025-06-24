@@ -8,8 +8,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   socket.on("chat message", ({ sender, message, file }) => {
     if (sender !== socket.id && sender !== "support") return;
+
     const li = document.createElement("li");
-    li.textContent = file ? `${sender} sent a file` : `${sender}: ${message}`;
+
+    if (file) {
+      const isImage = file.startsWith("data:image/");
+      if (isImage) {
+        const img = document.createElement("img");
+        img.src = file;
+        img.alt = "Image";
+        img.style.maxWidth = "200px";
+        img.style.display = "block";
+        li.innerHTML = `<strong>${sender}:</strong><br />`;
+        li.appendChild(img);
+      } else {
+        const link = document.createElement("a");
+        link.href = file;
+        link.download = "attachment";
+        link.textContent = `${sender} sent a file (click to download)`;
+        li.appendChild(link);
+      }
+    } else {
+      li.textContent = `${sender}: ${message}`;
+    }
+
     messages.appendChild(li);
     messages.scrollTop = messages.scrollHeight;
   });
