@@ -7,52 +7,64 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const PORT = process.env.PORT || 3000;
+// Serve static files
+app.use(express.static(path.join(__dirname, "public"))); // put HTML/JS/CSS in /public
 
-app.use(express.static(path.join(__dirname)));
-
-app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "admin.html"));
-});
-
-let customers = new Set();
+// Store mapping of socket.id to user type
+const visitors = new Map();
 
 io.on("connection", (socket) => {
-  const isAdmin = socket.handshake.query.admin === "true";
-  const id = socket.id;
+  const isAdmin = socket.handshake.query?.admin === "true";
 
-  if (!isAdmin) {
-    customers.add(id);
-    io.emit("visitor list", Array.from(customers));
+  if (isAdmin) {
+    console.log("🔧 Admin connected:", socket.id);
+  } else {
+    visitors.set(socket.id, { id: socket.id });
+    console.log("🧑‍💻 Visitor connected:", socket.id);
+
+    // Notify admin of new visitor
+    const activeVisitors = [...visitors.keys()];
+    io.emit("visitor list", activeVisitors);
   }
 
+  // Admin joins specific visitor's room
   socket.on("admin join", (visitorId) => {
-    socket.join(visitorId);
+    if (isAdmin) {
+      socket.join(visitorId);
+    }
   });
 
+  // Customer typing
+  socket.on("typing", () => {
+    socket.broadcast.emit("typing", { from: socket.id });
+  });
+
+  // Customer message
   socket.on("chat message", ({ message, file }) => {
-    io.sockets.sockets.forEach((s) => {
-      if (s.handshake.query.admin === "true") {
-        s.emit("chat message", { message, file, from: id });
-      }
-    });
+    const payload = { message, file, from: socket.id };
+    io.emit("chat message", payload);
   });
 
+  // Admin message
   socket.on("admin message", ({ target, message, file }) => {
-    io.to(target).emit("chat message", {
-      message,
-      file: file || null,
-    });
+    const payload = { message, file, from: "support" };
+    io.to(target).emit("chat message", payload);
   });
 
+  // Handle disconnect
   socket.on("disconnect", () => {
     if (!isAdmin) {
-      customers.delete(id);
-      io.emit("visitor list", Array.from(customers));
+      visitors.delete(socket.id);
+      console.log("❌ Visitor disconnected:", socket.id);
+      io.emit("visitor list", [...visitors.keys()]);
+    } else {
+      console.log("⚠️ Admin disconnected:", socket.id);
     }
   });
 });
 
+// Start server
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`✅ Chat server running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
