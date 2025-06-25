@@ -1,18 +1,21 @@
-let localUserId = localStorage.getItem('chat_user_id');
+function initChatUI(role) {
+  let localUserId = localStorage.getItem('chat_user_id');
+  if (!localUserId) {
+    localUserId = crypto.randomUUID();
+    localStorage.setItem('chat_user_id', localUserId);
+  }
 
-if (!localUserId) {
-  localUserId = crypto.randomUUID();
-  localStorage.setItem('chat_user_id', localUserId);
-}
+  const socket = io();
+  socket.emit('register user', { id: localUserId });
 
-const socket = io();
-socket.emit('register user', { id: localUserId });
-
-function initChatUI() {
   const form = document.getElementById('form');
   const input = document.getElementById('input');
   const messages = document.getElementById('messages');
   const sidebar = document.getElementById('sidebar');
+
+  if (role === 'customer' && sidebar) {
+    sidebar.style.display = 'none';
+  }
 
   form.addEventListener('submit', e => {
     e.preventDefault();
@@ -35,13 +38,14 @@ function initChatUI() {
     messages.appendChild(item);
     messages.scrollTop = messages.scrollHeight;
 
-    if (senderId !== localUserId) {
+    if (role === 'admin' && senderId !== localUserId) {
       const userDiv = document.querySelector(`.user[data-id="${senderId}"]`);
       if (userDiv) userDiv.classList.add('flash');
     }
   });
 
   socket.on('update users', userList => {
+    if (!sidebar) return;
     sidebar.innerHTML = userList.map(user => `
       <div class="user" data-id="${user.id}">
         <img src="${user.avatar}" class="avatar" />
@@ -50,8 +54,10 @@ function initChatUI() {
     `).join('');
   });
 
-  sidebar.addEventListener('click', e => {
-    const userDiv = e.target.closest('.user');
-    if (userDiv) userDiv.classList.remove('flash');
-  });
+  if (sidebar) {
+    sidebar.addEventListener('click', e => {
+      const userDiv = e.target.closest('.user');
+      if (userDiv) userDiv.classList.remove('flash');
+    });
+  }
 }
