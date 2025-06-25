@@ -6,13 +6,18 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="messages"></div>
-  <form id="form">
-    <input id="input" placeholder="Type a message..." autocomplete="off" />
-    <button>Send</button>
-  </form>
+  <div id="container">
+    <div id="sidebar"></div>
+    <div id="chat">
+      <div id="messages"></div>
+      <form id="form">
+        <input id="input" placeholder="Type your message..." autocomplete="off" />
+        <button>Send</button>
+      </form>
+    </div>
+  </div>
   <script src="/socket.io/socket.io.js"></script>
   <script src="chat.js"></script>
-  <script>initChatUI('Customer');</script>
+  <script>initChatUI();</script>
 </body>
 </html>
