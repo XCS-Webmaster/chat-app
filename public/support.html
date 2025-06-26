@@ -27,12 +27,14 @@
     const input = document.getElementById('input');
     let selectedId = null;
 
-    // Populate sidebar
-    socket.on('active-customers', list => {
+    // Update customer list
+    function renderCustomers(list) {
       sidebar.innerHTML = '';
       list.forEach(c => {
         const btn = document.createElement('div');
-        btn.className = 'customer' + (c.unread ? ' customer-flash' : '');
+        btn.classList.add('customer');
+        if (c.unread) btn.classList.add('customer-flash');
+        if (c.id === selectedId) btn.classList.add('selected');
         btn.textContent = c.label;
         btn.dataset.id = c.id;
         btn.onclick = () => {
@@ -41,41 +43,47 @@
         };
         sidebar.append(btn);
       });
-      // Clear messages if none selected
       if (!selectedId) messages.innerHTML = '';
-    });
+    }
 
-    // Receive history
+    socket.on('active-customers', renderCustomers);
+
+    // Load history when switching
     socket.on('message-history', history => {
       messages.innerHTML = '';
-      history.forEach(({from, message}) => {
-        const div = document.createElement('div');
-        div.className = 'message';
-        div.textContent = `${from}: ${message}`;
-        messages.append(div);
-      });
-      messages.scrollTop = messages.scrollHeight;
+      history.forEach(e => addMessage(e.from, e.message));
     });
 
     // Real-time incoming
-    socket.on('receive-message', ({from, message}) => {
-      const div = document.createElement('div');
-      div.className = 'message';
-      div.textContent = `${from}: ${message}`;
-      messages.append(div);
-      messages.scrollTop = messages.scrollHeight;
+    socket.on('receive-message', ({ from, message }) => {
+      addMessage(from, message);
     });
 
-    // Send
+    // Helper to append bubble
+    function addMessage(from, message) {
+      const isSupport = from === 'Support';
+      const div = document.createElement('div');
+      div.className = 'message ' + (isSupport ? 'support' : 'customer');
+
+      const avatar = document.createElement('img');
+      avatar.src = isSupport ? 'support-avatar.png' : 'customer-avatar.png';
+      avatar.className = 'avatar';
+
+      const text = document.createElement('div');
+      text.className = 'text';
+      text.textContent = `${from}: ${message}`;
+
+      div.append(isSupport ? text : avatar, isSupport ? avatar : text);
+      messages.append(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    // Send from support
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (!input.value || !selectedId) return;
       socket.emit('support-message', { to: selectedId, message: input.value });
-      const div = document.createElement('div');
-      div.className = 'message';
-      div.textContent = `Support: ${input.value}`;
-      messages.append(div);
-      messages.scrollTop = messages.scrollHeight;
+      addMessage('Support', input.value);
       input.value = '';
     });
   </script>

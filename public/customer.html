@@ -22,25 +22,35 @@
     const form = document.getElementById('form');
     const input = document.getElementById('input');
 
-    socket.on('receive-message', ({from, message}) => {
-      const div = document.createElement('div');
-      div.className = 'message';
-      div.textContent = `${from}: ${message}`;
-      messages.append(div);
-      messages.scrollTop = messages.scrollHeight;
+    socket.on('receive-message', ({ from, message }) => {
+      addMessage(from, message);
     });
 
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (!input.value) return;
       socket.emit('customer-message', input.value);
-      const div = document.createElement('div');
-      div.className = 'message';
-      div.textContent = `You: ${input.value}`;
-      messages.append(div);
-      messages.scrollTop = messages.scrollHeight;
+      addMessage('Customer', input.value);
       input.value = '';
     });
+
+    function addMessage(from, message) {
+      const isSupport = from === 'Support';
+      const div = document.createElement('div');
+      div.className = 'message ' + (isSupport ? 'support' : 'customer');
+
+      const avatar = document.createElement('img');
+      avatar.src = isSupport ? 'support-avatar.png' : 'customer-avatar.png';
+      avatar.className = 'avatar';
+
+      const text = document.createElement('div');
+      text.className = 'text';
+      text.textContent = `${from}: ${message}`;
+
+      div.append(isSupport ? text : avatar, isSupport ? avatar : text);
+      messages.append(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
   </script>
 </body>
 </html>
