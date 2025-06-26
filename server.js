@@ -9,6 +9,10 @@ const io = socketIO(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/healthcheck', (req, res) => {
+  res.status(200).send('OK');
+});
+
 io.on('connection', socket => {
   console.log('User connected');
 
@@ -23,3 +27,4 @@ io.on('connection', socket => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
