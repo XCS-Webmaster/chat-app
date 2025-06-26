@@ -30,6 +30,20 @@ input {
 button {
   padding: 0.5em 1em;
   cursor: pointer;
+  font-family: Tahoma, sans-serif;
+  font-size: 1em;
+  background-color: #3967d9; /* Blue */
+  color: white;
+  border: none;
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover,
+button:active,
+button:focus {
+  background-color: #e52238; /* Red on hover/tap */
+  outline: none;
 }
 
 .message {
