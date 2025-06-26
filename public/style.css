@@ -1,4 +1,4 @@
-/* Base */
+/* ==================== Base Styles ==================== */
 body {
   margin: 0;
   padding: 0;
@@ -8,14 +8,14 @@ body {
   flex-direction: column;
 }
 
-/* Support Panel Layout */
+/* =============== Support Panel Layout =============== */
 #support-panel {
   display: flex;
   height: 100vh;
   overflow: hidden;
 }
 
-/* Sidebar */
+/* ====================== Sidebar ====================== */
 #sidebar {
   width: 220px;
   background: #1e1e1e;
@@ -26,7 +26,6 @@ body {
 }
 
 .customer {
-  font-size: 1em;
   background-color: #3967d9;
   color: #fff;
   border-radius: 10px;
@@ -46,7 +45,7 @@ body {
 }
 
 @keyframes flash {
-  0%, 100% { background-color: #3967d9; }
+  0%,100% { background-color: #3967d9; }
   50%      { background-color: #e52238; }
 }
 
@@ -55,7 +54,7 @@ body {
   animation: none !important;
 }
 
-/* Chat Area */
+/* ====================== Chat Area ====================== */
 #chat-area {
   flex: 1;
   display: flex;
@@ -63,31 +62,38 @@ body {
   min-width: 0;
 }
 
-/* Messages Container */
+/* =================== Messages Container =================== */
 #messages {
   flex: 1;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
   padding: 1em;
   background: #f4f4f4;
+  overflow-y: auto;
 }
 
-/* ===== Unified Bubble Styles ===== */
-#messages .message {
+/* ===================== Bubble Styles ===================== */
+/* Wrapper for each bubble */
+.message {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  gap: 10px;             /* space between avatar and text */
   max-width: 80%;
   margin-bottom: 0.5em;
 }
 
-/* Direction: customer left, support right */
+/* Positioning */
 .message.customer {
+  align-self: flex-start;
   flex-direction: row;
 }
 .message.support {
+  align-self: flex-end;
   flex-direction: row-reverse;
 }
 
-/* Avatar stays 100×100 */
+/* Avatar */
 .message .avatar {
   width: 100px;
   height: 100px;
@@ -98,27 +104,24 @@ body {
 
 /* Text bubble */
 .message .text {
+  display: inline-block;
   padding: 0.5em;
   border-radius: 10px;
-  max-width: calc(100% - 110px); /* 100px avatar + 10px gap */
   word-wrap: break-word;
-  font-size: 1em;
-}
-
-/* Bubble colors and margin */
-.message.customer .text {
+  max-width: 60vw;       /* never exceed 60% of viewport width */
   background: #fff;
   color: #000;
   border: 1px solid #ccc;
-  margin-left: 10px;
 }
+
+/* Support bubble styling */
 .message.support .text {
   background: #3967d9;
   color: #fff;
-  margin-right: 10px;
+  border: none;
 }
 
-/* Form */
+/* ======================== Form ======================== */
 #form {
   display: flex;
   flex-wrap: wrap;
@@ -145,7 +148,7 @@ button {
   font-family: Tahoma, sans-serif;
   font-size: 1em;
   background-color: #3967d9;
-  color: white;
+  color: #fff;
   border: none;
   border-radius: 10px;
   transition: background-color 0.25s ease;
@@ -160,23 +163,27 @@ button:focus {
   outline: none;
 }
 
-/* Responsive */
+/* ==================== Responsive ==================== */
 @media (max-width: 600px) {
   #support-panel {
     flex-direction: column;
   }
+
   #sidebar {
     width: 100%;
     display: flex;
     overflow-x: auto;
   }
+
   .customer {
     flex: 1 0 auto;
     margin: 0.25em;
   }
+
   #form {
     flex-direction: column;
   }
+
   button {
     width: 100%;
   }
