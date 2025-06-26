@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XPRESS Support Panel</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="admin-panel">
+    <div id="sidebar"></div>
+    <div id="chat-area">
+      <div id="messages"></div>
+      <form id="form">
+        <input type="text" id="input" placeholder="Type a message..." autocomplete="off" />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io({ query: { role: 'support' } });
+    const sidebar = document.getElementById('sidebar');
+    const messages = document.getElementById('messages');
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+
+    let selectedCustomer = null;
+
+    socket.on('active-customers', customers => {
+      sidebar.innerHTML = '';
+      customers.forEach(id => {
+        const btn = document.createElement('div');
+        btn.className = 'customer';
+        btn.textContent = `Customer ${id.substring(0, 5)}`;
+        btn.onclick = () => {
+          selectedCustomer = id;
+          messages.innerHTML = '';
+        };
+        sidebar.appendChild(btn);
+      });
+    });
+
+    socket.on('receive-message', ({ from, message }) => {
+      if (from === selectedCustomer || from === 'Support') {
+        const div = document.createElement('div');
+        div.className = 'message';
+        div.textContent = `${from === 'Support' ? 'You' : from.substring(0, 5)}: ${message}`;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+      }
+    });
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      if (input.value && selectedCustomer) {
+        socket.emit('support-message', { to: selectedCustomer, message: input.value });
+        const div = document.createElement('div');
+        div.className = 'message';
+        div.textContent = `You: ${input.value}`;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+        input.value = '';
+      }
+    });
+
+    socket.emit('request-customers');
+  </script>
+</body>
+</html>

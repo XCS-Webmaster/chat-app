@@ -1,20 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>XPRESS Chat</title>
+  <title>XPRESS Live Chat</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="chat-area">
-    <div id="messages">
-      <div class="message">XPRESS: Welcome! How can we assist you today?</div>
-    </div>
+    <div id="messages"></div>
     <form id="form">
-      <input type="text" placeholder="Type your message..." />
+      <input type="text" id="input" placeholder="Type your message..." autocomplete="off" />
       <button type="submit">Send</button>
     </form>
   </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io({ query: { role: 'customer', userId: '' } });
+    const messages = document.getElementById('messages');
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+
+    socket.on('receive-message', ({ from, message }) => {
+      const div = document.createElement('div');
+      div.className = 'message';
+      div.textContent = `${from}: ${message}`;
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit('customer-message', input.value);
+        const div = document.createElement('div');
+        div.className = 'message';
+        div.textContent = `You: ${input.value}`;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+        input.value = '';
+      }
+    });
+  </script>
 </body>
 </html>
