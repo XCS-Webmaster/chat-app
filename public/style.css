@@ -26,10 +26,11 @@ body {
 }
 
 .user .avatar {
-  width: 100px;
-  height: 100px;
+  width: 50px;
+  height: 50px;
   border-radius: 10px;
   margin-right: 0.5em;
+  object-fit: cover;
 }
 
 .user.flash {
@@ -55,6 +56,19 @@ body {
   background: #f9f9f9;
 }
 
+.message {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1em;
+}
+
+.message .avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 0.5em;
+}
+
 #form {
   display: flex;
   padding: 1em;
@@ -67,3 +81,5 @@ input {
   padding: 0.5em;
   font-size: 16px;
   border-radius: 10px;
+  border: 1px solid #ccc;
+}
