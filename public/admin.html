@@ -2,17 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XPRESS Admin</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="messages"></div>
-  <form id="form">
-    <input id="input" placeholder="Reply to customer..." autocomplete="off" />
-    <button>Send</button>
-  </form>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="chat.js"></script>
-  <script>initChatUI('Admin');</script>
+  <div id="admin-panel">
+    <div id="sidebar">
+      <div class="customer" data-has-unread="false">Customer 1</div>
+      <div class="customer" data-has-unread="true">Customer 2</div>
+      <div class="customer" data-has-unread="false">Customer 3</div>
+    </div>
+    <div id="chat-area">
+      <div id="messages">
+        <div class="message">Customer 2: Hey XPRESS!</div>
+        <div class="message">You: Hi! How can I help you?</div>
+      </div>
+      <form id="form">
+        <input type="text" placeholder="Type a message..." />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.customer').forEach(el => {
+      if (el.dataset.hasUnread === "true") {
+        el.classList.add('customer-flash');
+      }
+    });
+  </script>
 </body>
 </html>
