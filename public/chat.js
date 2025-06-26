@@ -5,8 +5,9 @@ function initChatUI(role) {
     localStorage.setItem('chat_user_id', localUserId);
   }
 
+  const avatar = role === 'admin' ? 'support avatar.png' : 'customer avatar.png';
   const socket = io();
-  socket.emit('register user', { id: localUserId });
+  socket.emit('register user', { id: localUserId, role });
 
   const form = document.getElementById('form');
   const input = document.getElementById('input');
@@ -22,7 +23,8 @@ function initChatUI(role) {
     if (input.value) {
       socket.emit('chat message', {
         msg: input.value,
-        senderId: localUserId
+        senderId: localUserId,
+        avatar
       });
       input.value = '';
     }

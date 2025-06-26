@@ -20,13 +20,13 @@ let users = {};
 let customerCounter = 0;
 
 io.on('connection', socket => {
-  socket.on('register user', async ({ id }) => {
+  socket.on('register user', async ({ id, role }) => {
     if (!users[id]) {
       customerCounter++;
       users[id] = {
         id,
-        name: `Customer ${customerCounter}`,
-        avatar: `https://api.dicebear.com/7.x/thumbs/svg?seed=${customerCounter}`
+        name: role === 'admin' ? 'Support' : `Customer ${customerCounter}`,
+        avatar: role === 'admin' ? 'support avatar.png' : 'customer avatar.png'
       };
     }
 
@@ -44,22 +44,22 @@ io.on('connection', socket => {
     });
   });
 
-  socket.on('chat message', async ({ msg, senderId }) => {
+  socket.on('chat message', async ({ msg, senderId, avatar }) => {
     const user = users[senderId];
     if (user) {
       const message = new Message({
         msg,
         name: user.name,
-        avatar: user.avatar,
+        avatar: avatar || user.avatar,
         senderId
       });
       await message.save();
 
       io.emit('chat message', {
-        msg,
-        name: user.name,
-        avatar: user.avatar,
-        senderId
+        msg: message.msg,
+        name: message.name,
+        avatar: message.avatar,
+        senderId: message.senderId
       });
     }
   });
