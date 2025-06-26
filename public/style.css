@@ -1,72 +1,17 @@
 body {
-  margin: 0;
   font-family: sans-serif;
-}
-
-#container {
-  display: flex;
-  height: 100vh;
-}
-
-#sidebar {
-  width: 200px;
-  background: #f0f0f0;
-  padding: 1em;
-  border-right: 1px solid #ccc;
-  overflow-y: auto;
-}
-
-.user {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1em;
-  cursor: pointer;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.user .avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 10px;
-  margin-right: 0.5em;
-  object-fit: cover;
-}
-
-.user.flash {
-  animation: flashRGB 1s infinite;
-}
-
-@keyframes flashRGB {
-  0%   { background-color: #e52238; }
-  50%  { background-color: #3967d9; }
-  100% { background-color: #e52238; }
-}
-
-#chat {
-  flex: 1;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
+  height: 100vh;
 }
 
 #messages {
   flex: 1;
   overflow-y: auto;
   padding: 1em;
-  background: #f9f9f9;
-}
-
-.message {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1em;
-}
-
-.message .avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 0.5em;
+  background: #f4f4f4;
 }
 
 #form {
@@ -80,6 +25,13 @@ input {
   flex: 1;
   padding: 0.5em;
   font-size: 16px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
+}
+
+button {
+  padding: 0.5em 1em;
+  cursor: pointer;
+}
+
+.message {
+  margin-bottom: 0.5em;
 }
