@@ -1,11 +1,67 @@
+/* ========== Base Layout ========== */
+
 body {
   font-family: sans-serif;
   margin: 0;
   padding: 0;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  height: 100vh;
 }
+
+#admin-panel {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ========== Sidebar ========== */
+
+#sidebar {
+  width: 220px;
+  background-color: #1e1e1e;
+  padding: 1em 0.5em;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.customer {
+  font-family: Tahoma, sans-serif;
+  font-size: 1em;
+  background-color: #3967d9;
+  color: white;
+  border-radius: 10px;
+  padding: 0.5em;
+  margin-bottom: 0.5em;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.customer:hover {
+  background-color: #e52238;
+}
+
+/* Flashing for unread messages */
+.customer-flash {
+  animation: flash 1s infinite;
+}
+
+@keyframes flash {
+  0%   { background-color: #3967d9; }
+  50%  { background-color: #e52238; }
+  100% { background-color: #3967d9; }
+}
+
+/* ========== Chat Area ========== */
+
+#chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Messages */
 
 #messages {
   flex: 1;
@@ -13,6 +69,8 @@ body {
   padding: 1em;
   background: #f4f4f4;
 }
+
+/* Chat Form */
 
 #form {
   display: flex;
@@ -23,6 +81,8 @@ body {
   border-top: 1px solid #ccc;
 }
 
+/* Input Field */
+
 input {
   flex: 1;
   padding: 0.5em;
@@ -31,7 +91,10 @@ input {
   border: 1px solid #ccc;
   box-sizing: border-box;
   min-width: 0;
+  font-family: Tahoma, sans-serif;
 }
+
+/* Send Button */
 
 button {
   padding: 0.5em 1em;
@@ -45,13 +108,16 @@ button {
   transition: background-color 0.25s ease;
 }
 
-button:hover {
+button:hover,
+button:active {
   background-color: #e52238;
 }
 
 button:focus {
   outline: none;
 }
+
+/* Messages */
 
 .message {
   margin-bottom: 0.5em;
