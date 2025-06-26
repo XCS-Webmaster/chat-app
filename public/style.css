@@ -1,3 +1,4 @@
+/* Base */
 body {
   margin: 0;
   padding: 0;
@@ -7,19 +8,17 @@ body {
   flex-direction: column;
 }
 
-/* Admin Layout */
-
-#admin-panel {
+/* Support Layout */
+#support-panel {
   display: flex;
   height: 100vh;
   overflow: hidden;
 }
 
 /* Sidebar */
-
 #sidebar {
   width: 220px;
-  background-color: #1e1e1e;
+  background: #1e1e1e;
   padding: 1em 0.5em;
   box-sizing: border-box;
   overflow-y: auto;
@@ -29,10 +28,10 @@ body {
 .customer {
   font-size: 1em;
   background-color: #3967d9;
-  color: white;
+  color: #fff;
   border-radius: 10px;
   padding: 0.5em;
-  margin-bottom: 0.5em;
+  margin: 0.25em 0;
   text-align: center;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -47,12 +46,11 @@ body {
 }
 
 @keyframes flash {
-  0%, 100% { background-color: #3967d9; }
-  50% { background-color: #e52238; }
+  0%,100% { background-color: #3967d9; }
+  50%     { background-color: #e52238; }
 }
 
 /* Chat Area */
-
 #chat-area {
   flex: 1;
   display: flex;
@@ -74,7 +72,6 @@ body {
   padding: 1em;
   background: #fff;
   border-top: 1px solid #ccc;
-  box-sizing: border-box;
 }
 
 input {
@@ -90,10 +87,10 @@ input {
 button {
   padding: 0.5em 1em;
   cursor: pointer;
-  font-size: 1em;
   font-family: Tahoma, sans-serif;
+  font-size: 1em;
   background-color: #3967d9;
-  color: white;
+  color: #fff;
   border: none;
   border-radius: 10px;
   transition: background-color 0.25s ease;
@@ -112,10 +109,9 @@ button:focus {
   margin-bottom: 0.5em;
 }
 
-/* Mobile Responsiveness */
-
+/* Responsive */
 @media (max-width: 600px) {
-  #admin-panel {
+  #support-panel {
     flex-direction: column;
   }
 

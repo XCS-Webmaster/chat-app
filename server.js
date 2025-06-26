@@ -5,63 +5,91 @@ const io = require('socket.io')(http);
 
 app.use(express.static('public'));
 
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
-// Track customer sockets and message history
-const customers = {};
-const supportSockets = [];
+// In-memory store
+let customerCount = 0;
+const customers = {};    // socketId → { socket, label, history: [], unread }
+let supportSocket = null;
+let supportSelected = null;
 
 io.on('connection', socket => {
-  const { role, userId } = socket.handshake.query;
+  const { role } = socket.handshake.query;
 
   if (role === 'support') {
-    supportSockets.push(socket);
+    supportSocket = socket;
+    supportSelected = null;
 
-    // Send current active customers to support
-    socket.emit('active-customers', Object.keys(customers));
+    // Send current list
+    socket.emit('active-customers', listCustomers());
 
-    // Update support view when a new customer connects
-    socket.on('request-customers', () => {
-      socket.emit('active-customers', Object.keys(customers));
+    // When Support selects a customer
+    socket.on('select-customer', id => {
+      supportSelected = id;
+      customers[id].unread = 0;
+      socket.emit('message-history', customers[id].history);
+      broadcastCustomerList();
     });
 
-    // Support sends message to a customer
+    // When Support sends a message
     socket.on('support-message', ({ to, message }) => {
-      if (customers[to]) {
-        customers[to].socket.emit('receive-message', {
-          from: 'Support',
-          message,
-        });
-      }
-    });
-  } else {
-    // Handle customer connection
-    customers[socket.id] = { socket };
-
-    // Notify support clients
-    supportSockets.forEach(s =>
-      s.emit('active-customers', Object.keys(customers))
-    );
-
-    // Customer sends message to support
-    socket.on('customer-message', message => {
-      supportSockets.forEach(s =>
-        s.emit('receive-message', {
-          from: socket.id,
-          message,
-        })
-      );
+      const cust = customers[to];
+      if (!cust) return;
+      const entry = { from: 'Support', message };
+      cust.history.push(entry);
+      cust.socket.emit('receive-message', entry);
     });
 
     socket.on('disconnect', () => {
+      supportSocket = null;
+      supportSelected = null;
+    });
+
+  } else {
+    // New customer
+    customerCount++;
+    const label = `Customer ${customerCount}`;
+    customers[socket.id] = { socket, label, history: [], unread: 0 };
+
+    // Notify Support
+    if (supportSocket) broadcastCustomerList();
+
+    // Customer sends a message
+    socket.on('customer-message', message => {
+      const cust = customers[socket.id];
+      const entry = { from: cust.label, message };
+      cust.history.push(entry);
+
+      if (supportSocket) {
+        if (supportSelected === socket.id) {
+          supportSocket.emit('receive-message', entry);
+        } else {
+          cust.unread++;
+          broadcastCustomerList();
+        }
+      }
+    });
+
+    // Clean up on disconnect
+    socket.on('disconnect', () => {
       delete customers[socket.id];
-      supportSockets.forEach(s =>
-        s.emit('active-customers', Object.keys(customers))
-      );
+      if (supportSocket) broadcastCustomerList();
     });
   }
 });
 
-http.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+// Helper: list customers for Support
+function listCustomers() {
+  return Object.entries(customers).map(([id, c]) => ({
+    id, label: c.label, unread: c.unread
+  }));
+}
+
+// Broadcast updated list to Support
+function broadcastCustomerList() {
+  if (supportSocket) {
+    supportSocket.emit('active-customers', listCustomers());
+  }
+}
+
+http.listen(PORT, () => console.log(`Listening on ${PORT}`));

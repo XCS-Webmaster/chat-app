@@ -1,7 +1,7 @@
 {
   "name": "xpress-live-chat",
   "version": "1.0.0",
-  "description": "XPRESS real-time chat app with support and isolated customer sessions",
+  "description": "Real-time chat with Support panel and isolated customer sessions",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

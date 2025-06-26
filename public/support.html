@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>XPRESS Support Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>XPRESS Support</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="admin-panel">
+  <div id="support-panel">
     <div id="sidebar"></div>
     <div id="chat-area">
       <div id="messages"></div>
       <form id="form">
-        <input type="text" id="input" placeholder="Type a message..." autocomplete="off" />
+        <input id="input" type="text" placeholder="Type a message…" autocomplete="off" />
         <button type="submit">Send</button>
       </form>
     </div>
@@ -25,47 +25,59 @@
     const messages = document.getElementById('messages');
     const form = document.getElementById('form');
     const input = document.getElementById('input');
+    let selectedId = null;
 
-    let selectedCustomer = null;
-
-    socket.on('active-customers', customers => {
+    // Populate sidebar
+    socket.on('active-customers', list => {
       sidebar.innerHTML = '';
-      customers.forEach(id => {
+      list.forEach(c => {
         const btn = document.createElement('div');
-        btn.className = 'customer';
-        btn.textContent = `Customer ${id.substring(0, 5)}`;
+        btn.className = 'customer' + (c.unread ? ' customer-flash' : '');
+        btn.textContent = c.label;
+        btn.dataset.id = c.id;
         btn.onclick = () => {
-          selectedCustomer = id;
-          messages.innerHTML = '';
+          selectedId = c.id;
+          socket.emit('select-customer', c.id);
         };
-        sidebar.appendChild(btn);
+        sidebar.append(btn);
       });
+      // Clear messages if none selected
+      if (!selectedId) messages.innerHTML = '';
     });
 
-    socket.on('receive-message', ({ from, message }) => {
-      if (from === selectedCustomer || from === 'Support') {
+    // Receive history
+    socket.on('message-history', history => {
+      messages.innerHTML = '';
+      history.forEach(({from, message}) => {
         const div = document.createElement('div');
         div.className = 'message';
-        div.textContent = `${from === 'Support' ? 'You' : from.substring(0, 5)}: ${message}`;
-        messages.appendChild(div);
-        messages.scrollTop = messages.scrollHeight;
-      }
+        div.textContent = `${from}: ${message}`;
+        messages.append(div);
+      });
+      messages.scrollTop = messages.scrollHeight;
     });
 
+    // Real-time incoming
+    socket.on('receive-message', ({from, message}) => {
+      const div = document.createElement('div');
+      div.className = 'message';
+      div.textContent = `${from}: ${message}`;
+      messages.append(div);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    // Send
     form.addEventListener('submit', e => {
       e.preventDefault();
-      if (input.value && selectedCustomer) {
-        socket.emit('support-message', { to: selectedCustomer, message: input.value });
-        const div = document.createElement('div');
-        div.className = 'message';
-        div.textContent = `You: ${input.value}`;
-        messages.appendChild(div);
-        messages.scrollTop = messages.scrollHeight;
-        input.value = '';
-      }
+      if (!input.value || !selectedId) return;
+      socket.emit('support-message', { to: selectedId, message: input.value });
+      const div = document.createElement('div');
+      div.className = 'message';
+      div.textContent = `Support: ${input.value}`;
+      messages.append(div);
+      messages.scrollTop = messages.scrollHeight;
+      input.value = '';
     });
-
-    socket.emit('request-customers');
   </script>
 </body>
 </html>
