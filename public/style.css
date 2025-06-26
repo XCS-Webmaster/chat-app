@@ -40,9 +40,12 @@ button {
 }
 
 button:hover,
-button:active,
-button:focus {
+button:active {
   background-color: #e52238; /* Red on hover/tap */
+}
+
+button:focus {
+  background-color: #3967d9 !important; /* Force return to blue */
   outline: none;
 }
 
