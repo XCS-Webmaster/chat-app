@@ -36,16 +36,14 @@ button {
   color: white;
   border: none;
   border-radius: 10px;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.25s ease;
 }
 
-button:hover,
-button:active {
-  background-color: #e52238; /* Red on hover/tap */
+button:hover {
+  background-color: #e52238; /* Red on hover */
 }
 
 button:focus {
-  background-color: #3967d9 !important; /* Force return to blue */
   outline: none;
 }
 
