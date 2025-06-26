@@ -20,8 +20,8 @@ body {
   width: 220px;
   background: #1e1e1e;
   padding: 1em 0.5em;
-  overflow-y: auto;
   box-sizing: border-box;
+  overflow-y: auto;
   flex-shrink: 0;
 }
 
@@ -41,17 +41,15 @@ body {
   background-color: #e52238;
 }
 
-/* Unread flash */
 .customer-flash {
   animation: flash 1s infinite;
 }
 
 @keyframes flash {
-  0%,100% { background-color: #3967d9; }
-  50%     { background-color: #e52238; }
+  0%, 100% { background-color: #3967d9; }
+  50%      { background-color: #e52238; }
 }
 
-/* Selected stays solid red */
 .customer.selected {
   background-color: #e52238 !important;
   animation: none !important;
@@ -65,6 +63,7 @@ body {
   min-width: 0;
 }
 
+/* Messages Container */
 #messages {
   flex: 1;
   overflow-y: auto;
@@ -72,53 +71,51 @@ body {
   background: #f4f4f4;
 }
 
-/* Chat bubbles */
+/* ===== Unified Bubble Styles ===== */
 #messages .message {
   display: flex;
   align-items: flex-start;
+  max-width: 80%;
   margin-bottom: 0.5em;
 }
 
+/* Direction: customer left, support right */
 .message.customer {
-  justify-content: flex-start;
+  flex-direction: row;
 }
-
 .message.support {
-  justify-content: flex-end;
+  flex-direction: row-reverse;
 }
 
+/* Avatar stays 100×100 */
 .message .avatar {
   width: 100px;
   height: 100px;
   border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
 }
 
-.message.customer .avatar {
-  margin-right: 10px;
-}
-
-.message.support .avatar {
-  margin-left: 10px;
-}
-
+/* Text bubble */
 .message .text {
   padding: 0.5em;
   border-radius: 10px;
-  max-width: 60%;
+  max-width: calc(100% - 110px); /* 100px avatar + 10px gap */
   word-wrap: break-word;
   font-size: 1em;
 }
 
+/* Bubble colors and margin */
 .message.customer .text {
   background: #fff;
   color: #000;
   border: 1px solid #ccc;
+  margin-left: 10px;
 }
-
 .message.support .text {
   background: #3967d9;
   color: #fff;
+  margin-right: 10px;
 }
 
 /* Form */
@@ -168,22 +165,18 @@ button:focus {
   #support-panel {
     flex-direction: column;
   }
-
   #sidebar {
     width: 100%;
     display: flex;
     overflow-x: auto;
   }
-
   .customer {
     flex: 1 0 auto;
     margin: 0.25em;
   }
-
   #form {
     flex-direction: column;
   }
-
   button {
     width: 100%;
   }
