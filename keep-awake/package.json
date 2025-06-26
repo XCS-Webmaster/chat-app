@@ -1,8 +1,7 @@
 {
   "name": "keep-awake",
   "version": "1.0.0",
-  "description": "Keeps Render live chat awake and shows styled uptime logs.",
-  "main": "keep-awake.js",
+  "description": "Keeps chat app awake with periodic pings and optional log dashboard.",
   "scripts": {
     "start": "node keep-awake.js"
   },
