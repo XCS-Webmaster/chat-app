@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>XPRESS Support</title>
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/style.css"/>
 </head>
 <body>
-  <!-- preload audios -->
+  <!-- Preload both sounds -->
   <audio id="firstMsgAudio" preload="auto" loop src="/first-msg.mp3"></audio>
-  <audio id="notifyAudio"   preload="auto" src="/notify.mp3"></audio>
+  <audio id="notifyAudio" preload="auto" src="/notify.mp3"></audio>
 
   <div id="support-panel">
     <div id="sidebar"></div>
     <div id="chat-area">
       <div id="messages"></div>
       <form id="form">
-        <input id="input" type="text" placeholder="Type a message…" autocomplete="off" />
+        <input id="input" type="text" placeholder="Type a message…" autocomplete="off"/>
         <button type="submit">Send</button>
       </form>
     </div>
@@ -24,7 +24,7 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket        = io({ query:{ role:'support' } });
+    const socket        = io({ query: { role: 'support' } });
     const sidebar       = document.getElementById('sidebar');
     const messages      = document.getElementById('messages');
     const form          = document.getElementById('form');
@@ -33,20 +33,18 @@
     const notifyAudio   = document.getElementById('notifyAudio');
     let selectedId      = null;
 
-    // play notify on every receive
     function notifySound() {
-      try { notifyAudio.currentTime = 0; notifyAudio.play(); } catch {}
+      notifyAudio.currentTime = 0;
+      notifyAudio.play().catch(()=>{});
     }
 
-    // if any button is flashing, start looped first-msg
     function startFirstMsg() {
-      try { firstMsgAudio.currentTime = 0; firstMsgAudio.play(); } catch {}
+      firstMsgAudio.currentTime = 0;
+      firstMsgAudio.play().catch(()=>{});
     }
 
-    // stop the looped first-msg sound
     function stopFirstMsg() {
       firstMsgAudio.pause();
-      firstMsgAudio.currentTime = 0;
     }
 
     socket.on('active-customers', list => {
@@ -58,17 +56,16 @@
         btn.dataset.id = c.id;
         if (c.unread > 0) btn.classList.add('customer-flash');
         if (c.id === selectedId) btn.classList.add('selected');
-
         btn.onclick = () => selectCustomer(btn);
         sidebar.appendChild(btn);
       });
-      // if any flashing remains, ensure sound is playing
+      if (!selectedId) messages.innerHTML = '';
+      // If any customer still flashing, ensure first-msg is playing
       if (Array.from(sidebar.children).some(b=>b.classList.contains('customer-flash'))) {
         startFirstMsg();
       } else {
         stopFirstMsg();
       }
-      if (!selectedId) messages.innerHTML = '';
     });
 
     socket.on('message-history', hist => {
@@ -77,44 +74,60 @@
     });
 
     socket.on('receive-message', ({ id, from, message }) => {
-      notifySound();
-      // flash that customer's button
-      const btn = Array.from(sidebar.children)
-        .find(b=>b.dataset.id===id);
-      if (btn && id!==selectedId) {
-        btn.classList.add('customer-flash');
-        startFirstMsg();
+      const btn = Array.from(sidebar.children).find(b => b.dataset.id === id);
+      const isSelected = id === selectedId;
+
+      if (isSelected) {
+        // If you're viewing them, just show + notify
+        addMessage(from, message);
+        notifySound();
+      } else {
+        const wasFlashing = btn.classList.contains('customer-flash');
+        if (!wasFlashing) {
+          // very first message => flash + first-msg
+          btn.classList.add('customer-flash');
+          startFirstMsg();
+        } else {
+          // subsequent messages => flash remains + regular notify
+          notifySound();
+        }
       }
-      // if currently viewing them, show inline
-      if (id===selectedId) addMessage(from, message);
+      // auto-scroll if needed (only for selected)
+      if (isSelected) messages.scrollTop = messages.scrollHeight;
     });
 
     form.onsubmit = e => {
       e.preventDefault();
-      if (!input.value||!selectedId) return;
-      socket.emit('support-message',{ to:selectedId, message:input.value });
-      addMessage('Support',input.value);
+      if (!input.value || !selectedId) return;
+      socket.emit('support-message', { to: selectedId, message: input.value });
+      addMessage('Support', input.value);
       input.value = '';
       form.querySelector('button').blur();
     };
 
     function selectCustomer(btn) {
       selectedId = btn.dataset.id;
-      socket.emit('select-customer',selectedId);
-      // clear that button's flash + stop first-msg if none remain
-      btn.classList.remove('customer-flash');
-      if (!Array.from(sidebar.children)
-            .some(b=>b.classList.contains('customer-flash'))) {
+      socket.emit('select-customer', selectedId);
+
+      // stop first-msg if this was the flashing one
+      if (btn.classList.contains('customer-flash')) {
         stopFirstMsg();
       }
-      // mark selected
-      sidebar.querySelectorAll('.customer').forEach(b=>b.classList.remove('selected'));
+      // clear flash and mark selection
+      sidebar.querySelectorAll('.customer').forEach(b => {
+        b.classList.remove('customer-flash','selected');
+      });
       btn.classList.add('selected');
+
+      // clear chat and load history
+      messages.innerHTML = '';
     }
 
     function addMessage(from, text) {
+      const isSup = from === 'Support';
       const div   = document.createElement('div');
-      div.className = 'message ' + (from==='Support'?'support':'customer');
+      div.className = 'message ' + (isSup ? 'support' : 'customer');
+
       const ac     = document.createElement('div');
       ac.className = 'avatar-container';
       const name   = document.createElement('div');
@@ -122,16 +135,15 @@
       name.textContent = from;
       const avatar = document.createElement('img');
       avatar.className = 'avatar';
-      avatar.src = from==='Support'
-        ? 'support-avatar.png'
-        : 'customer-avatar.png';
-      ac.append(name,avatar);
-      const bubble=document.createElement('div');
-      bubble.className='text';
-      bubble.textContent=text;
-      div.append(ac,bubble);
+      avatar.src     = isSup ? 'support-avatar.png' : 'customer-avatar.png';
+      ac.append(name, avatar);
+
+      const bubble = document.createElement('div');
+      bubble.className = 'text';
+      bubble.textContent = text;
+
+      div.append(ac, bubble);
       messages.append(div);
-      messages.scrollTop=messages.scrollHeight;
     }
   </script>
 </body>
