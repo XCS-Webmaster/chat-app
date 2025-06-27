@@ -156,7 +156,7 @@ body {
   background: #e52238;
 }
 
-/* Responsive */
+/* Responsive + mobile tap flash */
 @media (max-width: 600px) {
   #support-panel {
     flex-direction: column;
@@ -177,8 +177,7 @@ body {
     width: 100%;
   }
 
-  /* Mobile tap effect */
-  #sidebar .customer:active {
+  .mobile-tap {
     background: #e52238 !important;
   }
 }

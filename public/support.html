@@ -23,16 +23,16 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket        = io({ query: { role: 'support' } });
-    const sidebar       = document.getElementById('sidebar');
-    const messages      = document.getElementById('messages');
-    const form          = document.getElementById('form');
-    const input         = document.getElementById('input');
-    const notifyAudio   = document.getElementById('notifySound');
-    const firstAudio    = document.getElementById('firstSound');
-    const seenIds       = new Set();
-    let selectedId      = null;
-    let sidebarReady    = false;
+    const socket         = io({ query: { role: 'support' } });
+    const sidebar        = document.getElementById('sidebar');
+    const messages       = document.getElementById('messages');
+    const form           = document.getElementById('form');
+    const input          = document.getElementById('input');
+    const notifyAudio    = document.getElementById('notifySound');
+    const firstAudio     = document.getElementById('firstSound');
+    const seenIds        = new Set();
+    let selectedId       = null;
+    let sidebarReady     = false;
     const queuedReceives = [];
 
     socket.on('active-customers', customers => {
@@ -46,7 +46,11 @@
         if (unread > 0) btn.classList.add('customer-flash');
         if (id === selectedId) btn.classList.add('selected');
 
-        btn.onclick = () => selectCustomer(btn);
+        btn.onclick = () => {
+          flashTap(btn);
+          selectCustomer(btn);
+        };
+
         sidebar.appendChild(btn);
       });
 
@@ -73,14 +77,14 @@
 
     function handleReceive({ id, from, message }) {
       const isSelected = (id === selectedId);
-      const isNewCustomer = !seenIds.has(id);
-      const btn = [...sidebar.children].find(b => b.dataset.id === id);
+      const isNew      = !seenIds.has(id);
+      const btn        = [...sidebar.children].find(b => b.dataset.id === id);
 
       if (!isSelected && btn) {
         btn.classList.add('customer-flash');
       }
 
-      if (isNewCustomer) {
+      if (isNew) {
         seenIds.add(id);
         firstAudio.currentTime = 0;
         firstAudio.play().catch(() => {});
@@ -95,6 +99,7 @@
 
     form.onsubmit = e => {
       e.preventDefault();
+      flashTap(form.querySelector('button'));
       if (!input.value || !selectedId) return;
       socket.emit('support-message', { to: selectedId, message: input.value });
       addMessage('Support', input.value);
@@ -128,30 +133,10 @@
     }
 
     function addMessage(from, text) {
-      const isSup = from === 'Support';
-      const div = document.createElement('div');
+      const isSup  = from === 'Support';
+      const div    = document.createElement('div');
       div.className = 'message ' + (isSup ? 'support' : 'customer');
 
-      const ac = document.createElement('div');
+      const ac     = document.createElement('div');
       ac.className = 'avatar-container';
-      const name = document.createElement('div');
-      name.className = 'name';
-      name.textContent = from;
-
-      const avatar = document.createElement('img');
-      avatar.className = 'avatar';
-      avatar.src = isSup ? 'support-avatar.png' : 'customer-avatar.png';
-
-      ac.append(name, avatar);
-
-      const bubble = document.createElement('div');
-      bubble.className = 'text';
-      bubble.textContent = text;
-
-      div.append(ac, bubble);
-      messages.append(div);
-      messages.scrollTop = messages.scrollHeight;
-    }
-  </script>
-</body>
-</html>
+      const name   = document.createElement
