@@ -14,7 +14,7 @@ body {
   background: #f4f4f4;
 }
 
-/* Layout */
+/* Support Panel Layout */
 #support-panel {
   display: flex;
   flex: 1;
@@ -25,13 +25,6 @@ body {
   padding: 1em;
   overflow-y: auto;
 }
-#chat-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Sidebar buttons */
 #sidebar .customer {
   background: #3967d9;
   color: #fff;
@@ -41,9 +34,15 @@ body {
   text-align: center;
   cursor: pointer;
   transition: background 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
-#sidebar .customer:hover {
+#sidebar .customer:hover,
+#sidebar .customer:active {
   background: #e52238;
+}
+#sidebar .customer:focus {
+  outline: none;
+  background: #3967d9;
 }
 #sidebar .customer-flash {
   animation: flash 1s infinite;
@@ -57,7 +56,14 @@ body {
   animation: none !important;
 }
 
-/* Customer header */
+/* Chat Area */
+#chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Customer Page Header */
 #chat-area > header {
   background: #3967d9;
   color: #fff;
@@ -73,13 +79,14 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.5em;
+  background: #f4f4f4;
 }
 
 /* Bubble */
 .message {
   display: flex;
-  align-items: center;
   gap: 10px;
+  max-width: 100%;
 }
 .message.customer {
   flex-direction: row;
@@ -87,7 +94,8 @@ body {
 .message.support {
   flex-direction: row-reverse;
 }
-/* Avatar + name */
+
+/* Avatar + Name */
 .avatar-container {
   display: flex;
   flex-direction: column;
@@ -103,6 +111,7 @@ body {
   border-radius: 50%;
   object-fit: cover;
 }
+
 /* Text */
 .text {
   padding: 0.5em;
@@ -113,8 +122,8 @@ body {
 }
 .message.customer .text {
   background: #fff;
-  border: 1px solid #ccc;
-  color: #000;
+  border: 1px solid #3967d9;
+  color: #3967d9;
 }
 .message.support .text {
   background: #3967d9;
@@ -146,6 +155,7 @@ body {
   transition: background 0.2s;
   -webkit-tap-highlight-color: transparent;
 }
+#form button:hover,
 #form button:active {
   background: #e52238;
 }

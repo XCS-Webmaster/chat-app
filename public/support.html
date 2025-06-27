@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>XPRESS Support</title>
   <link rel="stylesheet" href="/style.css"/>
 </head>
@@ -54,13 +54,6 @@
     });
 
     socket.on('receive-message', ({ from, message }) => {
-      if (from !== 'Support') {
-        // flash that customer's button
-        Array.from(sidebar.children).forEach(b => {
-          if (b.dataset.id === selectedId) return;
-          b.classList.add('customer-flash');
-        });
-      }
       addMessage(from, message);
     });
 
