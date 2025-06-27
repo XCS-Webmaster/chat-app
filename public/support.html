@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>XPRESS Support</title>
-  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="/style.css"/>
 </head>
 <body>
   <div id="support-panel">
@@ -25,11 +25,9 @@
     const messages = document.getElementById('messages');
     const form     = document.getElementById('form');
     const input    = document.getElementById('input');
-    let selectedId = null,
-        origTitle  = document.title,
-        flashInt   = null;
+    let selectedId, origTitle = document.title, flashInt;
 
-    socket.on('active-customers', list => {
+    function renderList(list) {
       sidebar.innerHTML = '';
       list.forEach(c => {
         const btn = document.createElement('div');
@@ -44,15 +42,15 @@
         sidebar.append(btn);
       });
       if (!selectedId) messages.innerHTML = '';
-    });
+    }
 
+    socket.on('active-customers', renderList);
     socket.on('message-history', hist => {
       messages.innerHTML = '';
       hist.forEach(e => addMessage(e.from, e.message));
       clearFlash();
     });
-
-    socket.on('receive-message', ({ from, message }) => {
+    socket.on('receive-message', ({from, message}) => {
       addMessage(from, message);
       if (!document.hasFocus()) startFlash();
       if (selectedId) socket.emit('select-customer', selectedId);
@@ -61,26 +59,26 @@
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (!input.value || !selectedId) return;
-      socket.emit('support-message', { to: selectedId, message: input.value });
+      socket.emit('support-message', {to: selectedId, message: input.value});
       addMessage('Support', input.value);
       input.value = '';
     });
 
     function addMessage(from, text) {
       const isSup = from === 'Support';
-      const div = document.createElement('div');
+      const div   = document.createElement('div');
       div.className = 'message ' + (isSup ? 'support' : 'customer');
 
-      const avatar = document.createElement('img');
-      avatar.className = 'avatar';
-      avatar.loading = 'lazy';
-      avatar.src = isSup ? 'support-avatar.png' : 'customer-avatar.png';
+      const img  = document.createElement('img');
+      img.className = 'avatar';
+      img.loading = 'lazy';
+      img.src     = isSup ? 'support-avatar.png' : 'customer-avatar.png';
 
-      const bubble = document.createElement('div');
-      bubble.className = 'text';
-      bubble.textContent = `${from}: ${text}`;
+      const txt  = document.createElement('div');
+      txt.className = 'text';
+      txt.textContent = `${from}: ${text}`;
 
-      div.append(avatar, bubble);
+      div.append(isSup ? txt : img, isSup ? img : txt);
       messages.append(div);
       messages.scrollTop = messages.scrollHeight;
     }
@@ -91,13 +89,11 @@
         document.title = document.title === origTitle ? '🔔 New Msg' : origTitle;
       }, 1000);
     }
-
     function clearFlash() {
       clearInterval(flashInt);
-      flashInt = null;
       document.title = origTitle;
+      flashInt = null;
     }
-
     window.addEventListener('focus', clearFlash);
   </script>
 </body>
