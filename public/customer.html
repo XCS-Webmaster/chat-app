@@ -39,7 +39,6 @@
 
     form.onsubmit = e => {
       e.preventDefault();
-      playTap(form.querySelector('button'));
       if (!input.value) return;
       socket.emit('customer-message', input.value);
       addMessage('Customer', input.value);
@@ -50,13 +49,6 @@
     function playNotify() {
       notify.currentTime = 0;
       notify.play().catch(() => {});
-    }
-
-    function playTap(btn) {
-      if (window.innerWidth <= 600) {
-        btn.classList.add('mobile-tap');
-        setTimeout(() => btn.classList.remove('mobile-tap'), 160);
-      }
     }
 
     function addMessage(from, text) {

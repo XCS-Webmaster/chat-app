@@ -13,13 +13,11 @@ body {
   height: 100vh;
   background: #f4f4f4;
 }
-
 #support-panel {
   display: flex;
   flex: 1;
   overflow: hidden;
 }
-
 #sidebar {
   width: 220px;
   background: #1e1e1e;
@@ -51,20 +49,17 @@ body {
   background: #e52238 !important;
   animation: none !important;
 }
-
 #chat-area {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
-
 #chat-area > header {
   background: #3967d9;
   color: #fff;
   text-align: center;
   padding: 0.75em;
 }
-
 #messages {
   flex: 1;
   padding: 1em;
@@ -74,7 +69,6 @@ body {
   gap: 0.5em;
   background: #f4f4f4;
 }
-
 .message {
   display: flex;
   align-items: center;
@@ -86,90 +80,5 @@ body {
 .message.support {
   flex-direction: row-reverse;
 }
-
 .avatar-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.name {
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-.avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.text {
-  display: flex;
-  align-items: center;
-  padding: 0.5em;
-  border-radius: 8px;
-  word-wrap: break-word;
-  max-width: calc(100% - 100px);
-  font-size: 0.95em;
-}
-.message.customer .text,
-.message.support .text {
-  background: #3967d9;
-  color: #fff;
-}
-
-#form {
-  display: flex;
-  padding: 1em;
-  background: #fff;
-  border-top: 1px solid #ccc;
-  gap: 0.5em;
-}
-#form input {
-  flex: 1;
-  padding: 0.5em;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-#form button {
-  padding: 0.5em 1em;
-  background: #3967d9;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.2s;
-  -webkit-tap-highlight-color: transparent;
-}
-#form button:hover,
-#form button:active {
-  background: #e52238;
-}
-
-/* Responsive + mobile tap feedback */
-@media (max-width: 600px) {
-  #support-panel {
-    flex-direction: column;
-  }
-  #sidebar {
-    width: 100%;
-    display: flex;
-    overflow-x: auto;
-  }
-  #sidebar .customer {
-    flex: 1;
-    margin-right: 0.5em;
-  }
-  #form {
-    flex-direction: column;
-  }
-  #form button {
-    width: 100%;
-  }
-
-  #sidebar .customer:active,
-  #form button:active {
-    background: #e52238 !important;
-  }
-}
+  display:

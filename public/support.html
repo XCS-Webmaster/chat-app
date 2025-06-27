@@ -7,8 +7,7 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <audio id="notifySound" preload="auto" src="/notify.mp3"></audio>
-  <audio id="firstSound" preload="auto" src="/first-msg.mp3" loop></audio>
+  <audio id="notify" preload="auto" src="/notify.mp3"></audio>
 
   <div id="support-panel">
     <div id="sidebar"></div>
@@ -23,83 +22,44 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket         = io({ query: { role: 'support' } });
-    const sidebar        = document.getElementById('sidebar');
-    const messages       = document.getElementById('messages');
-    const form           = document.getElementById('form');
-    const input          = document.getElementById('input');
-    const notifyAudio    = document.getElementById('notifySound');
-    const firstAudio     = document.getElementById('firstSound');
-    const seenIds        = new Set();
-    let selectedId       = null;
-    let sidebarReady     = false;
-    const queuedReceives = [];
+    const socket     = io({ query: { role: 'support' } });
+    const sidebar    = document.getElementById('sidebar');
+    const messages   = document.getElementById('messages');
+    const form       = document.getElementById('form');
+    const input      = document.getElementById('input');
+    const notify     = document.getElementById('notify');
+    let selectedId   = null;
 
-    socket.on('active-customers', customers => {
+    socket.on('active-customers', list => {
       sidebar.innerHTML = '';
-      customers.forEach(({ id, label, unread }) => {
+      list.forEach(c => {
         const btn = document.createElement('div');
         btn.className = 'customer';
-        btn.textContent = label;
-        btn.dataset.id = id;
-
-        if (unread > 0) btn.classList.add('customer-flash');
-        if (id === selectedId) btn.classList.add('selected');
-
+        btn.textContent = c.label;
+        btn.dataset.id = c.id;
+        if (c.unread > 0) btn.classList.add('customer-flash');
+        if (c.id === selectedId) btn.classList.add('selected');
         btn.onclick = () => {
-          flashTap(btn);
           selectCustomer(btn);
         };
-
         sidebar.appendChild(btn);
       });
-
-      sidebarReady = true;
-      while (queuedReceives.length) {
-        handleReceive(queuedReceives.shift());
-      }
-
-      updateFirstAudioState();
+      if (!selectedId) messages.innerHTML = '';
     });
 
     socket.on('message-history', hist => {
       messages.innerHTML = '';
-      hist.forEach(({ from, message }) => addMessage(from, message));
+      hist.forEach(e => addMessage(e.from, e.message));
     });
 
-    socket.on('receive-message', data => {
-      if (!sidebarReady) {
-        queuedReceives.push(data);
-      } else {
-        handleReceive(data);
-      }
+    socket.on('receive-message', ({ id, from, message }) => {
+      playNotify();
+      flashButton(id);
+      if (id === selectedId) addMessage(from, message);
     });
-
-    function handleReceive({ id, from, message }) {
-      const isSelected = (id === selectedId);
-      const isNew      = !seenIds.has(id);
-      const btn        = [...sidebar.children].find(b => b.dataset.id === id);
-
-      if (!isSelected && btn) {
-        btn.classList.add('customer-flash');
-      }
-
-      if (isNew) {
-        seenIds.add(id);
-        firstAudio.currentTime = 0;
-        firstAudio.play().catch(() => {});
-      } else {
-        notifyAudio.currentTime = 0;
-        notifyAudio.play().catch(() => {});
-      }
-
-      if (isSelected) addMessage(from, message);
-      updateFirstAudioState();
-    }
 
     form.onsubmit = e => {
       e.preventDefault();
-      flashTap(form.querySelector('button'));
       if (!input.value || !selectedId) return;
       socket.emit('support-message', { to: selectedId, message: input.value });
       addMessage('Support', input.value);
@@ -110,33 +70,53 @@
     function selectCustomer(btn) {
       selectedId = btn.dataset.id;
       socket.emit('select-customer', selectedId);
-
-      [...sidebar.children].forEach(b => {
-        b.classList.remove('selected', 'customer-flash');
-      });
+      clearFlashes();
+      sidebar.querySelectorAll('.customer').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
-
-      stopFirstAudio();
-      updateFirstAudioState();
     }
 
-    function updateFirstAudioState() {
-      const anyFlashing = [...sidebar.children].some(b =>
-        b.classList.contains('customer-flash')
-      );
-      if (!anyFlashing) stopFirstAudio();
+    function playNotify() {
+      notify.currentTime = 0;
+      notify.play().catch(() => {});
     }
 
-    function stopFirstAudio() {
-      firstAudio.pause();
-      firstAudio.currentTime = 0;
+    function flashButton(id) {
+      Array.from(sidebar.children).forEach(b => {
+        if (b.dataset.id === id && b.dataset.id !== selectedId) {
+          b.classList.add('customer-flash');
+        }
+      });
+    }
+
+    function clearFlashes() {
+      Array.from(sidebar.children).forEach(b => b.classList.remove('customer-flash'));
     }
 
     function addMessage(from, text) {
-      const isSup  = from === 'Support';
-      const div    = document.createElement('div');
+      const isSup = from === 'Support';
+      const div = document.createElement('div');
       div.className = 'message ' + (isSup ? 'support' : 'customer');
 
-      const ac     = document.createElement('div');
+      const ac = document.createElement('div');
       ac.className = 'avatar-container';
-      const name   = document.createElement
+      const name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = from;
+
+      const avatar = document.createElement('img');
+      avatar.className = 'avatar';
+      avatar.src = isSup ? 'support-avatar.png' : 'customer-avatar.png';
+
+      ac.append(name, avatar);
+
+      const bubble = document.createElement('div');
+      bubble.className = 'text';
+      bubble.textContent = text;
+
+      div.append(ac, bubble);
+      messages.append(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
+  </script>
+</body>
+</html>
