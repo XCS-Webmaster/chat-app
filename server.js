@@ -43,6 +43,7 @@ io.on('connection', socket => {
       supportSocket = null;
       supportSelected = null;
     });
+
   } else if (role === 'customer') {
     let id = userId;
     if (!id || !customers[id]) {
@@ -78,6 +79,7 @@ io.on('connection', socket => {
       customers[id].socket = null;
       broadcastCustomers();
     });
+
   } else {
     socket.disconnect(true);
   }
