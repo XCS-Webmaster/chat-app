@@ -1,16 +1,15 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const http = require('http');
-const socketIO = require('socket.io');
+const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server);
+const io = new Server(server);
 
 app.use(express.static('public'));
 
 const PORT = process.env.PORT || 3000;
-let supportSocket = null;
 let supportSelected = null;
 const customers = {};
 
@@ -18,16 +17,14 @@ io.on('connection', socket => {
   const { role, userId } = socket.handshake.query;
 
   if (role === 'support') {
-    supportSocket = socket;
-    supportSelected = null;
+    socket.join('support');
     socket.emit('active-customers', listCustomers());
 
     socket.on('select-customer', id => {
-      if (!customers[id]) return;
       supportSelected = id;
-      customers[id].unread = 0;
-      socket.emit('message-history', customers[id].history);
-      broadcastCustomers();
+      if (customers[id]) customers[id].unread = 0;
+      socket.emit('message-history', customers[id]?.history || []);
+      io.to('support').emit('active-customers', listCustomers());
     });
 
     socket.on('support-message', ({ to, message }) => {
@@ -35,12 +32,7 @@ io.on('connection', socket => {
       if (!c) return;
       const entry = { from: 'Support', message };
       c.history.push(entry);
-      c.socket?.emit('receive-message', entry);
-    });
-
-    socket.on('disconnect', () => {
-      supportSocket = null;
-      supportSelected = null;
+      c.socket?.emit('receive-message', { from: 'Support', message });
     });
 
   } else if (role === 'customer') {
@@ -58,26 +50,16 @@ io.on('connection', socket => {
     }
 
     socket.emit('init', { userId: id });
-    broadcastCustomers();
+    io.to('support').emit('active-customers', listCustomers());
 
     socket.on('customer-message', message => {
       const c = customers[id];
       const entry = { from: c.label, message };
       c.history.push(entry);
-      if (supportSocket) {
-        c.unread++;
-        broadcastCustomers();
-        supportSocket.emit('receive-message', { id, from: c.label, message });
-      }
+      c.unread++;
+      io.to('support').emit('receive-message', { id, from: c.label, message });
+      io.to('support').emit('active-customers', listCustomers());
     });
-
-    socket.on('disconnect', () => {
-      customers[id].socket = null;
-      broadcastCustomers();
-    });
-
-  } else {
-    socket.disconnect(true);
   }
 });
 
@@ -85,10 +67,6 @@ function listCustomers() {
   return Object.entries(customers)
     .filter(([, c]) => c.socket && c.socket.connected)
     .map(([id, c]) => ({ id, label: c.label, unread: c.unread }));
-}
-
-function broadcastCustomers() {
-  supportSocket?.emit('active-customers', listCustomers());
 }
 
 server.listen(PORT, () => {

@@ -32,9 +32,8 @@
     const notifyAudio   = document.getElementById('notifyAudio');
     let selectedId      = null;
 
-    function todayKey(id) {
-      const d = new Date().toISOString().split('T')[0];
-      return `played_${id}_${d}`;
+    function dayKey(id) {
+      return 'played_' + id + '_' + new Date().toISOString().slice(0,10);
     }
 
     socket.on('active-customers', list => {
@@ -58,13 +57,12 @@
     });
 
     socket.on('receive-message', ({ id, from, message }) => {
-      // first-msg of the day
-      const key = todayKey(id);
+      const key = dayKey(id);
       if (!localStorage.getItem(key)) {
-        firstMsgAudio.play().catch(() => {});
+        firstMsgAudio.play().catch(()=>{});
         localStorage.setItem(key, '1');
       }
-      notifyAudio.play().catch(() => {});
+      notifyAudio.play().catch(()=>{});
       flashButton(id);
       if (id === selectedId) addMessage(from, message);
     });
@@ -81,12 +79,10 @@
     function selectCustomer(btn) {
       selectedId = btn.dataset.id;
       socket.emit('select-customer', selectedId);
-      // stop/reset firstMsgAudio in case it's playing
       firstMsgAudio.pause();
       firstMsgAudio.currentTime = 0;
-      // allow next day’s first msg when new day arrives
-      localStorage.removeItem(todayKey(selectedId));
-      clearAllFlashes();
+      localStorage.removeItem(dayKey(selectedId));
+      clearFlashes();
       btn.classList.add('selected');
     }
 
@@ -98,31 +94,25 @@
       });
     }
 
-    function clearAllFlashes() {
-      Array.from(sidebar.children).forEach(b => {
-        b.classList.remove('customer-flash');
-      });
+    function clearFlashes() {
+      Array.from(sidebar.children).forEach(b => b.classList.remove('customer-flash'));
     }
 
     function addMessage(from, text) {
-      const isSup = from === 'Support';
-      const div   = document.createElement('div');
-      div.className = 'message ' + (isSup ? 'support' : 'customer');
-
-      const ac     = document.createElement('div');
+      const div = document.createElement('div');
+      div.className = 'message ' + (from === 'Support' ? 'support' : 'customer');
+      const ac = document.createElement('div');
       ac.className = 'avatar-container';
-      const name   = document.createElement('div');
+      const name = document.createElement('div');
       name.className = 'name';
       name.textContent = from;
       const avatar = document.createElement('img');
       avatar.className = 'avatar';
-      avatar.src     = isSup ? 'support-avatar.png' : 'customer-avatar.png';
+      avatar.src = from === 'Support' ? 'support-avatar.png' : 'customer-avatar.png';
       ac.append(name, avatar);
-
       const bubble = document.createElement('div');
       bubble.className = 'text';
       bubble.textContent = text;
-
       div.append(ac, bubble);
       messages.append(div);
       messages.scrollTop = messages.scrollHeight;
