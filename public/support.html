@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>XPRESS Support</title>
-  <link rel="stylesheet" href="/style.css"/>
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <div id="support-panel">
@@ -12,85 +12,101 @@
     <div id="chat-area">
       <div id="messages"></div>
       <form id="form">
-        <input id="input" type="text" placeholder="Type a message…" autocomplete="off"/>
+        <input id="input" type="text" placeholder="Type a message…" autocomplete="off" />
         <button type="submit">Send</button>
       </form>
     </div>
   </div>
+
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket   = io({ query: { role: 'support' } })
-    const sidebar  = document.getElementById('sidebar')
-    const messages = document.getElementById('messages')
-    const form     = document.getElementById('form')
-    const input    = document.getElementById('input')
-    let selectedId = null
+    const socket   = io({ query: { role: 'support' } });
+    const sidebar  = document.getElementById('sidebar');
+    const messages = document.getElementById('messages');
+    const form     = document.getElementById('form');
+    const input    = document.getElementById('input');
+    let selectedId = null;
 
     socket.on('active-customers', list => {
-      sidebar.innerHTML = ''
+      sidebar.innerHTML = '';
       list.forEach(c => {
-        const btn = document.createElement('div')
-        btn.className = 'customer'
-        btn.textContent = c.label
-        btn.dataset.id = c.id
-        if (c.unread > 0) btn.classList.add('customer-flash')
-        if (c.id === selectedId) btn.classList.add('selected')
-        btn.addEventListener('click', () => {
-          selectedId = c.id
-          socket.emit('select-customer', c.id)
-          btn.classList.remove('customer-flash')
-          Array.from(sidebar.children).forEach(b =>
-            b.classList.toggle('selected', b.dataset.id === c.id)
-          )
-        })
-        sidebar.appendChild(btn)
-      })
-      if (!selectedId) messages.innerHTML = ''
-    })
+        const btn = document.createElement('div');
+        btn.className = 'customer';
+        btn.textContent = c.label;
+        btn.dataset.id = c.id;
+        if (c.unread > 0) btn.classList.add('customer-flash');
+        if (c.id === selectedId) btn.classList.add('selected');
+        btn.onclick = () => selectCustomer(btn);
+        sidebar.appendChild(btn);
+      });
+      if (!selectedId) messages.innerHTML = '';
+    });
 
     socket.on('message-history', hist => {
-      messages.innerHTML = ''
-      hist.forEach(e => addMessage(e.from, e.message))
-    })
+      messages.innerHTML = '';
+      hist.forEach(e => addMessage(e.from, e.message));
+    });
 
     socket.on('receive-message', ({ id, from, message }) => {
-      const btn = Array.from(sidebar.children)
-        .find(b => b.dataset.id === id)
-      if (btn && id !== selectedId) {
-        btn.classList.add('customer-flash')
+      flashButton(id);
+      if (id === selectedId) {
+        addMessage(from, message);
       }
-      if (id === selectedId) addMessage(from, message)
-    })
+    });
 
-    form.addEventListener('submit', e => {
-      e.preventDefault()
-      if (!input.value || !selectedId) return
-      socket.emit('support-message', { to: selectedId, message: input.value })
-      addMessage('Support', input.value)
-      input.value = ''
-      form.querySelector('button').blur()
-    })
+    form.onsubmit = e => {
+      e.preventDefault();
+      if (!input.value || !selectedId) return;
+      socket.emit('support-message', { to: selectedId, message: input.value });
+      addMessage('Support', input.value);
+      input.value = '';
+      form.querySelector('button').blur();
+    };
+
+    function selectCustomer(btn) {
+      selectedId = btn.dataset.id;
+      socket.emit('select-customer', selectedId);
+      clearAllFlashes();
+      btn.classList.add('selected');
+    }
+
+    function flashButton(id) {
+      Array.from(sidebar.children).forEach(b => {
+        if (b.dataset.id === id && b.dataset.id !== selectedId) {
+          b.classList.add('customer-flash');
+        }
+      });
+    }
+
+    function clearAllFlashes() {
+      Array.from(sidebar.children).forEach(b => {
+        b.classList.remove('customer-flash');
+      });
+    }
 
     function addMessage(from, text) {
-      const isSup = from === 'Support'
-      const div   = document.createElement('div')
-      div.className = 'message ' + (isSup ? 'support' : 'customer')
-      const ac     = document.createElement('div')
-      ac.className = 'avatar-container'
-      const name   = document.createElement('div')
-      name.className = 'name'
-      name.textContent = from
-      const avatar = document.createElement('img')
-      avatar.className = 'avatar'
-      avatar.loading = 'lazy'
-      avatar.src     = isSup ? 'support-avatar.png' : 'customer-avatar.png'
-      ac.append(name, avatar)
-      const bubble = document.createElement('div')
-      bubble.className = 'text'
-      bubble.textContent = text
-      div.append(ac, bubble)
-      messages.append(div)
-      messages.scrollTop = messages.scrollHeight
+      const isSup = from === 'Support';
+      const div   = document.createElement('div');
+      div.className = 'message ' + (isSup ? 'support' : 'customer');
+
+      const ac     = document.createElement('div');
+      ac.className = 'avatar-container';
+      const name   = document.createElement('div');
+      name.className = 'name';
+      name.textContent = from;
+      const avatar = document.createElement('img');
+      avatar.className = 'avatar';
+      avatar.loading = 'lazy';
+      avatar.src     = isSup ? 'support-avatar.png' : 'customer-avatar.png';
+      ac.append(name, avatar);
+
+      const bubble = document.createElement('div');
+      bubble.className = 'text';
+      bubble.textContent = text;
+
+      div.append(ac, bubble);
+      messages.append(div);
+      messages.scrollTop = messages.scrollHeight;
     }
   </script>
 </body>

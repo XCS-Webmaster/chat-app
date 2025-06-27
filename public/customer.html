@@ -1,26 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>XPRESS Chat</title>
-  <link rel="stylesheet" href="/style.css"/>
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <div id="chat-area">
     <header><h2>Chat with Support</h2></header>
     <div id="messages"></div>
     <form id="form">
-      <input id="input" type="text" placeholder="Type your message…" autocomplete="off"/>
+      <input id="input" type="text" placeholder="Type your message…" autocomplete="off" />
       <button type="submit">Send</button>
     </form>
   </div>
+
   <script src="/socket.io/socket.io.js"></script>
   <script>
     let userId = localStorage.getItem('userId');
-    const socket = io({
-      query: { role: 'customer', userId: userId || '' }
-    });
+    const socket = io({ query: { role: 'customer', userId: userId || '' } });
     const messages = document.getElementById('messages');
     const form     = document.getElementById('form');
     const input    = document.getElementById('input');
@@ -34,14 +33,14 @@
       addMessage(from, message)
     );
 
-    form.addEventListener('submit', e => {
+    form.onsubmit = e => {
       e.preventDefault();
       if (!input.value) return;
       socket.emit('customer-message', input.value);
       addMessage('Customer', input.value);
       input.value = '';
       form.querySelector('button').blur();
-    });
+    };
 
     function addMessage(from, text) {
       const isSup = from === 'Support';
