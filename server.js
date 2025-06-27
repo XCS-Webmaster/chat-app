@@ -22,8 +22,10 @@ io.on('connection', socket => {
 
     socket.on('select-customer', id => {
       supportSelected = id;
-      if (customers[id]) customers[id].unread = 0;
-      socket.emit('message-history', customers[id]?.history || []);
+      if (customers[id]) {
+        customers[id].unread = 0;
+        socket.emit('message-history', customers[id].history);
+      }
       io.to('support').emit('active-customers', listCustomers());
     });
 
@@ -54,21 +56,30 @@ io.on('connection', socket => {
 
     socket.on('customer-message', message => {
       const c = customers[id];
+      if (!c) return;
       const entry = { from: c.label, message };
       c.history.push(entry);
       c.unread++;
       io.to('support').emit('receive-message', { id, from: c.label, message });
       io.to('support').emit('active-customers', listCustomers());
     });
+
+    socket.on('disconnect', () => {
+      delete customers[id];
+      io.to('support').emit('active-customers', listCustomers());
+    });
+
+  } else {
+    socket.disconnect(true);
   }
 });
 
 function listCustomers() {
-  return Object.entries(customers)
-    .filter(([, c]) => c.socket && c.socket.connected)
-    .map(([id, c]) => ({ id, label: c.label, unread: c.unread }));
+  return Object.entries(customers).map(([id, c]) => ({
+    id,
+    label: c.label,
+    unread: c.unread
+  }));
 }
 
-server.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
