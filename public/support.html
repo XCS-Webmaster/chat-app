@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>XPRESS Support</title>
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/style.css"/>
 </head>
 <body>
   <audio id="firstMsgAudio" preload="auto" src="/first-msg.mp3"></audio>
@@ -15,7 +15,7 @@
     <div id="chat-area">
       <div id="messages"></div>
       <form id="form">
-        <input id="input" type="text" placeholder="Type a message…" autocomplete="off" />
+        <input id="input" type="text" placeholder="Type a message…" autocomplete="off"/>
         <button type="submit">Send</button>
       </form>
     </div>
@@ -31,6 +31,11 @@
     const firstMsgAudio = document.getElementById('firstMsgAudio');
     const notifyAudio   = document.getElementById('notifyAudio');
     let selectedId      = null;
+
+    function todayKey(id) {
+      const d = new Date().toISOString().split('T')[0];
+      return `played_${id}_${d}`;
+    }
 
     socket.on('active-customers', list => {
       sidebar.innerHTML = '';
@@ -53,9 +58,11 @@
     });
 
     socket.on('receive-message', ({ id, from, message }) => {
-      if (!localStorage.getItem('played_' + id)) {
+      // first-msg of the day
+      const key = todayKey(id);
+      if (!localStorage.getItem(key)) {
         firstMsgAudio.play().catch(() => {});
-        localStorage.setItem('played_' + id, '1');
+        localStorage.setItem(key, '1');
       }
       notifyAudio.play().catch(() => {});
       flashButton(id);
@@ -74,8 +81,11 @@
     function selectCustomer(btn) {
       selectedId = btn.dataset.id;
       socket.emit('select-customer', selectedId);
+      // stop/reset firstMsgAudio in case it's playing
       firstMsgAudio.pause();
       firstMsgAudio.currentTime = 0;
+      // allow next day’s first msg when new day arrives
+      localStorage.removeItem(todayKey(selectedId));
       clearAllFlashes();
       btn.classList.add('selected');
     }
