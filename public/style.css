@@ -176,4 +176,9 @@ body {
   #form button {
     width: 100%;
   }
+
+  /* Mobile tap effect */
+  #sidebar .customer:active {
+    background: #e52238 !important;
+  }
 }
