@@ -13,6 +13,7 @@ let supportSelected = null;
 
 io.on('connection', socket => {
   const role = socket.handshake.query.role;
+
   if (role === 'support') {
     // ==== SUPPORT ====
     supportSocket = socket;
@@ -50,7 +51,6 @@ io.on('connection', socket => {
       history: [],
       unread: 0
     };
-    // Notify support
     broadcastCustomerList();
 
     socket.on('customer-message', message => {
@@ -75,7 +75,7 @@ io.on('connection', socket => {
     });
 
   } else {
-    // ==== DROP ANY OTHER CONNECTION ====
+    // DROP anything else
     socket.disconnect(true);
   }
 });
@@ -93,5 +93,5 @@ function broadcastCustomerList() {
 }
 
 http.listen(PORT, () => {
-  console.log(`Listening on ${PORT}`);
+  console.log(`Server listening on port ${PORT}`);
 });

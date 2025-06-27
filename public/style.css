@@ -26,32 +26,31 @@ body {
 }
 
 .customer {
-  background-color: #3967d9;
-  color: white;
+  background: #3967d9;
+  color: #fff;
   border-radius: 10px;
   padding: 0.5em;
   margin: 0.25em 0;
   text-align: center;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background 0.3s;
 }
 
-/* Hover now only applies to sidebar buttons */
+/* hover only in sidebar */
 #sidebar .customer:hover {
-  background-color: #e52238;
+  background: #e52238;
 }
 
 .customer-flash {
   animation: flash 1s infinite;
 }
-
 @keyframes flash {
-  0%,100% { background-color: #3967d9; }
-  50%      { background-color: #e52238; }
+  0%,100% { background: #3967d9; }
+  50%     { background: #e52238; }
 }
 
 .customer.selected {
-  background-color: #e52238 !important;
+  background: #e52238 !important;
   animation: none !important;
 }
 
@@ -101,6 +100,7 @@ body {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+  loading: lazy;
 }
 
 /* Text bubble */
@@ -113,23 +113,23 @@ body {
 }
 
 .message.customer .text {
-  background: white;
-  color: black;
+  background: #fff;
+  color: #000;
   border: 1px solid #ccc;
 }
 
 .message.support .text {
   background: #3967d9;
-  color: white;
+  color: #fff;
+  border: none;
 }
 
 /* ===================== Form ===================== */
 #form {
   display: flex;
-  flex-wrap: wrap;
   gap: 0.5em;
   padding: 1em;
-  background: white;
+  background: #fff;
   border-top: 1px solid #ccc;
   box-sizing: border-box;
 }
@@ -149,16 +149,16 @@ button {
   cursor: pointer;
   font-family: Tahoma, sans-serif;
   font-size: 1em;
-  background-color: #3967d9;
-  color: white;
+  background: #3967d9;
+  color: #fff;
   border: none;
   border-radius: 10px;
-  transition: background-color 0.25s;
+  transition: background 0.25s;
 }
 
 button:hover,
 button:active {
-  background-color: #e52238;
+  background: #e52238;
 }
 
 button:focus {
@@ -170,18 +170,22 @@ button:focus {
   #support-panel {
     flex-direction: column;
   }
+
   #sidebar {
     width: 100%;
     display: flex;
     overflow-x: auto;
   }
+
   .customer {
     flex: 1 0 auto;
     margin: 0.25em;
   }
+
   #form {
     flex-direction: column;
   }
+
   button {
     width: 100%;
   }

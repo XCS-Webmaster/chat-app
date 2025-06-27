@@ -23,36 +23,32 @@
           input = document.getElementById('input');
 
     socket.on('receive-message', ({ from, message }) => {
-      addMsg(from, message);
+      addMessage(from, message);
     });
 
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (!input.value) return;
       socket.emit('customer-message', input.value);
-      addMsg('Customer', input.value);
+      addMessage('Customer', input.value);
       input.value = '';
     });
 
-    function addMsg(from, text) {
-      const isSup = from === 'Support';
+    function addMessage(from, text) {
+      const isSupport = from === 'Support';
       const div = document.createElement('div');
-      div.className = 'message ' + (isSup ? 'support' : 'customer');
+      div.className = 'message ' + (isSupport ? 'support' : 'customer');
 
-      const img = document.createElement('img');
-      img.className = 'avatar';
-      img.loading = 'lazy';
-      img.src = isSup ? 'support-avatar.png' : 'customer-avatar.png';
+      const avatar = document.createElement('img');
+      avatar.className = 'avatar';
+      avatar.loading = 'lazy';
+      avatar.src = isSupport ? 'support-avatar.png' : 'customer-avatar.png';
 
-      const span = document.createElement('div');
-      span.className = 'text';
-      span.textContent = `${from}: ${text}`;
+      const bubble = document.createElement('div');
+      bubble.className = 'text';
+      bubble.textContent = `${from}: ${text}`;
 
-      if (isSup) {
-        div.append(span, img);
-      } else {
-        div.append(img, span);
-      }
+      div.append(avatar, bubble);
       messages.append(div);
       messages.scrollTop = messages.scrollHeight;
     }

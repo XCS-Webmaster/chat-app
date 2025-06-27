@@ -27,7 +27,7 @@
           input = document.getElementById('input');
     let selectedId = null;
 
-    function renderCustomers(list) {
+    socket.on('active-customers', list => {
       sidebar.innerHTML = '';
       list.forEach(c => {
         const btn = document.createElement('div');
@@ -42,46 +42,41 @@
         sidebar.append(btn);
       });
       if (!selectedId) messages.innerHTML = '';
-    }
-
-    socket.on('active-customers', renderCustomers);
+    });
 
     socket.on('message-history', hist => {
       messages.innerHTML = '';
-      hist.forEach(e => addMsg(e.from, e.message));
+      hist.forEach(e => addMessage(e.from, e.message));
     });
 
     socket.on('receive-message', ({ from, message }) => {
-      addMsg(from, message);
+      addMessage(from, message);
     });
 
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (!input.value || !selectedId) return;
       socket.emit('support-message', { to: selectedId, message: input.value });
-      addMsg('Support', input.value);
+      addMessage('Support', input.value);
       input.value = '';
     });
 
-    function addMsg(from, text) {
-      const isSup = from === 'Support';
+    function addMessage(from, text) {
+      const isSupport = from === 'Support';
       const div = document.createElement('div');
-      div.className = 'message ' + (isSup ? 'support' : 'customer');
+      div.className = 'message ' + (isSupport ? 'support' : 'customer');
 
-      const img = document.createElement('img');
-      img.className = 'avatar';
-      img.loading = 'lazy';
-      img.src = isSup ? 'support-avatar.png' : 'customer-avatar.png';
+      const avatar = document.createElement('img');
+      avatar.className = 'avatar';
+      avatar.loading = 'lazy';
+      avatar.src = isSupport ? 'support-avatar.png' : 'customer-avatar.png';
 
-      const span = document.createElement('div');
-      span.className = 'text';
-      span.textContent = `${from}: ${text}`;
+      const bubble = document.createElement('div');
+      bubble.className = 'text';
+      bubble.textContent = `${from}: ${text}`;
 
-      if (isSup) {
-        div.append(span, img);
-      } else {
-        div.append(img, span);
-      }
+      // always avatar then bubble—CSS flex-direction handles left/right
+      div.append(avatar, bubble);
       messages.append(div);
       messages.scrollTop = messages.scrollHeight;
     }
