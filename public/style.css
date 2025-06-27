@@ -14,14 +14,12 @@ body {
   background: #f4f4f4;
 }
 
-/* Support Panel Layout */
 #support-panel {
   display: flex;
   flex: 1;
   overflow: hidden;
 }
 
-/* Sidebar */
 #sidebar {
   width: 220px;
   background: #1e1e1e;
@@ -54,14 +52,12 @@ body {
   animation: none !important;
 }
 
-/* Chat Area */
 #chat-area {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-/* Header on Customer page */
 #chat-area > header {
   background: #3967d9;
   color: #fff;
@@ -69,7 +65,6 @@ body {
   padding: 0.75em;
 }
 
-/* Messages */
 #messages {
   flex: 1;
   padding: 1em;
@@ -80,7 +75,6 @@ body {
   background: #f4f4f4;
 }
 
-/* Bubble */
 .message {
   display: flex;
   align-items: center;
@@ -93,7 +87,6 @@ body {
   flex-direction: row-reverse;
 }
 
-/* Avatar + Name */
 .avatar-container {
   display: flex;
   flex-direction: column;
@@ -110,7 +103,6 @@ body {
   object-fit: cover;
 }
 
-/* Text */
 .text {
   display: flex;
   align-items: center;
@@ -126,7 +118,6 @@ body {
   color: #fff;
 }
 
-/* Form */
 #form {
   display: flex;
   padding: 1em;
@@ -156,7 +147,7 @@ body {
   background: #e52238;
 }
 
-/* Responsive + mobile tap flash */
+/* Responsive + mobile tap feedback */
 @media (max-width: 600px) {
   #support-panel {
     flex-direction: column;
@@ -177,7 +168,8 @@ body {
     width: 100%;
   }
 
-  .mobile-tap {
+  #sidebar .customer:active,
+  #form button:active {
     background: #e52238 !important;
   }
 }

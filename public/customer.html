@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/style.css"/>
 </head>
 <body>
-  <audio id="notifyAudio" preload="auto" src="/notify.mp3"></audio>
+  <audio id="notify" preload="auto" src="/notify.mp3"></audio>
 
   <div id="chat-area">
     <header><h2>Chat with Support</h2></header>
@@ -20,14 +20,12 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    let userId        = localStorage.getItem('userId');
-    const socket      = io({
-      query: { role:'customer', userId: userId || '' }
-    });
-    const messages    = document.getElementById('messages');
-    const form        = document.getElementById('form');
-    const input       = document.getElementById('input');
-    const notifyAudio = document.getElementById('notifyAudio');
+    let userId      = localStorage.getItem('userId');
+    const socket    = io({ query: { role:'customer', userId: userId || '' } });
+    const form      = document.getElementById('form');
+    const input     = document.getElementById('input');
+    const messages  = document.getElementById('messages');
+    const notify    = document.getElementById('notify');
 
     socket.on('init', data => {
       userId = data.userId;
@@ -35,12 +33,13 @@
     });
 
     socket.on('receive-message', ({ from, message }) => {
-      notifyAudio.play().catch(()=>{});
+      playNotify();
       addMessage(from, message);
     });
 
     form.onsubmit = e => {
       e.preventDefault();
+      playTap(form.querySelector('button'));
       if (!input.value) return;
       socket.emit('customer-message', input.value);
       addMessage('Customer', input.value);
@@ -48,9 +47,22 @@
       form.querySelector('button').blur();
     };
 
+    function playNotify() {
+      notify.currentTime = 0;
+      notify.play().catch(() => {});
+    }
+
+    function playTap(btn) {
+      if (window.innerWidth <= 600) {
+        btn.classList.add('mobile-tap');
+        setTimeout(() => btn.classList.remove('mobile-tap'), 160);
+      }
+    }
+
     function addMessage(from, text) {
-      const div   = document.createElement('div');
-      div.className = 'message ' + (from === 'Support' ? 'support' : 'customer');
+      const isSup  = from === 'Support';
+      const div    = document.createElement('div');
+      div.className = 'message ' + (isSup ? 'support' : 'customer');
 
       const ac     = document.createElement('div');
       ac.className = 'avatar-container';
@@ -59,7 +71,7 @@
       name.textContent = from;
       const avatar = document.createElement('img');
       avatar.className = 'avatar';
-      avatar.src     = from === 'Support' ? 'support-avatar.png' : 'customer-avatar.png';
+      avatar.src = isSup ? 'support-avatar.png' : 'customer-avatar.png';
       ac.append(name, avatar);
 
       const bubble = document.createElement('div');
