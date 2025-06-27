@@ -3,14 +3,17 @@ const { v4: uuidv4 } = require('uuid');
 const http = require('http');
 const { Server } = require('socket.io');
 
-const app = express();
+const app    = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io     = new Server(server);
 
 app.use(express.static('public'));
 
 const PORT = process.env.PORT || 3000;
 let supportSelected = null;
+
+// global incremental counter for unique labels
+let nextCustomerNum = 1;
 const customers = {};
 
 io.on('connection', socket => {
@@ -39,15 +42,17 @@ io.on('connection', socket => {
 
   } else if (role === 'customer') {
     let id = userId;
+    // first time (or stale) visitor: give new uuid + unique label
     if (!id || !customers[id]) {
       id = uuidv4();
       customers[id] = {
         socket,
-        label: `Customer ${Object.keys(customers).length + 1}`,
+        label: `Customer ${nextCustomerNum++}`,
         history: [],
         unread: 0
       };
     } else {
+      // reconnecting same customer: reattach socket
       customers[id].socket = socket;
     }
 
@@ -67,7 +72,10 @@ io.on('connection', socket => {
     });
 
     socket.on('disconnect', () => {
-      delete customers[id];
+      // detach socket but keep record for future reconnect
+      if (customers[id]) {
+        customers[id].socket = null;
+      }
       io.to('support').emit('active-customers', listCustomers());
     });
 
@@ -77,6 +85,7 @@ io.on('connection', socket => {
 });
 
 function listCustomers() {
+  // only show truly connected customers
   return Object.entries(customers)
     .filter(([, c]) => c.socket && c.socket.connected)
     .map(([id, c]) => ({
@@ -86,4 +95,6 @@ function listCustomers() {
     }));
 }
 
-server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+server.listen(PORT, () => {
+  console.log(`Listening on port ${PORT}`);
+});

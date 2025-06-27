@@ -7,9 +7,6 @@
   <link rel="stylesheet" href="/style.css"/>
 </head>
 <body>
-  <!-- Preload notification sound -->
-  <audio id="notifyAudio" preload="auto" src="/notify.mp3"></audio>
-
   <div id="support-panel">
     <div id="sidebar"></div>
     <div id="chat-area">
@@ -23,37 +20,20 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket      = io({ query: { role: 'support' } });
-    const sidebar     = document.getElementById('sidebar');
-    const messages    = document.getElementById('messages');
-    const form        = document.getElementById('form');
-    const input       = document.getElementById('input');
-    const notifyAudio = document.getElementById('notifyAudio');
-    let selectedId    = null;
+    const socket   = io({ query: { role: 'support' } });
+    const sidebar  = document.getElementById('sidebar');
+    const messages = document.getElementById('messages');
+    const form     = document.getElementById('form');
+    const input    = document.getElementById('input');
+    let selectedId = null;
 
-    // Audio preload + queue system
-    let audioLoaded   = false;
-    let pendingPlays  = 0;
-
-    notifyAudio.addEventListener('canplaythrough', () => {
-      audioLoaded = true;
-      while (pendingPlays-- > 0) playNow();
-    });
-
-    function playNow() {
-      notifyAudio.currentTime = 0;
-      notifyAudio.play().catch(()=>{});
-    }
-
+    // Play notify.mp3 exactly once per receive, including first
     function notifySound() {
-      if (audioLoaded) {
-        playNow();
-      } else {
-        pendingPlays++;
-      }
+      try {
+        new Audio('/notify.mp3').play();
+      } catch {}
     }
 
-    // UI updates
     socket.on('active-customers', list => {
       sidebar.innerHTML = '';
       list.forEach(c => {
@@ -111,8 +91,9 @@
     }
 
     function addMessage(from, text) {
+      const isSup = from === 'Support';
       const div   = document.createElement('div');
-      div.className = 'message ' + (from === 'Support' ? 'support' : 'customer');
+      div.className = 'message ' + (isSup ? 'support' : 'customer');
 
       const ac     = document.createElement('div');
       ac.className = 'avatar-container';
@@ -121,7 +102,7 @@
       name.textContent = from;
       const avatar = document.createElement('img');
       avatar.className = 'avatar';
-      avatar.src     = from === 'Support'
+      avatar.src     = isSup
         ? 'support-avatar.png'
         : 'customer-avatar.png';
       ac.append(name, avatar);
