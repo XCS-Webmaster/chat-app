@@ -7,6 +7,9 @@
   <link rel="stylesheet" href="/style.css"/>
 </head>
 <body>
+  <!-- Preload notification sound -->
+  <audio id="notifyAudio" preload="auto" src="/notify.mp3"></audio>
+
   <div id="support-panel">
     <div id="sidebar"></div>
     <div id="chat-area">
@@ -20,25 +23,37 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket   = io({ query: { role: 'support' } });
-    const sidebar  = document.getElementById('sidebar');
-    const messages = document.getElementById('messages');
-    const form     = document.getElementById('form');
-    const input    = document.getElementById('input');
-    let selectedId = null;
+    const socket      = io({ query: { role: 'support' } });
+    const sidebar     = document.getElementById('sidebar');
+    const messages    = document.getElementById('messages');
+    const form        = document.getElementById('form');
+    const input       = document.getElementById('input');
+    const notifyAudio = document.getElementById('notifyAudio');
+    let selectedId    = null;
 
-    // Robust notifier: fresh Audio + fallback retry
-    function notifySound() {
-      try {
-        new Audio('/notify.mp3').play();
-      } catch (e) {}
-      setTimeout(() => {
-        try {
-          new Audio('/notify.mp3').play();
-        } catch (e) {}
-      }, 250);
+    // Audio preload + queue system
+    let audioLoaded   = false;
+    let pendingPlays  = 0;
+
+    notifyAudio.addEventListener('canplaythrough', () => {
+      audioLoaded = true;
+      while (pendingPlays-- > 0) playNow();
+    });
+
+    function playNow() {
+      notifyAudio.currentTime = 0;
+      notifyAudio.play().catch(()=>{});
     }
 
+    function notifySound() {
+      if (audioLoaded) {
+        playNow();
+      } else {
+        pendingPlays++;
+      }
+    }
+
+    // UI updates
     socket.on('active-customers', list => {
       sidebar.innerHTML = '';
       list.forEach(c => {
@@ -98,6 +113,7 @@
     function addMessage(from, text) {
       const div   = document.createElement('div');
       div.className = 'message ' + (from === 'Support' ? 'support' : 'customer');
+
       const ac     = document.createElement('div');
       ac.className = 'avatar-container';
       const name   = document.createElement('div');
@@ -105,11 +121,15 @@
       name.textContent = from;
       const avatar = document.createElement('img');
       avatar.className = 'avatar';
-      avatar.src = from === 'Support' ? 'support-avatar.png' : 'customer-avatar.png';
+      avatar.src     = from === 'Support'
+        ? 'support-avatar.png'
+        : 'customer-avatar.png';
       ac.append(name, avatar);
+
       const bubble = document.createElement('div');
       bubble.className = 'text';
       bubble.textContent = text;
+
       div.append(ac, bubble);
       messages.append(div);
       messages.scrollTop = messages.scrollHeight;
@@ -117,4 +137,3 @@
   </script>
 </body>
 </html>
-```
