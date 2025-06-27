@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>XPRESS Support</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
   <div id="support-panel">
@@ -12,7 +12,7 @@
     <div id="chat-area">
       <div id="messages"></div>
       <form id="form">
-        <input id="input" type="text" placeholder="Type a message…" autocomplete="off" />
+        <input id="input" type="text" placeholder="Type a message…" autocomplete="off"/>
         <button type="submit">Send</button>
       </form>
     </div>
@@ -21,22 +21,20 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io({ query: { role: 'support' } });
-    const sidebar = document.getElementById('sidebar');
-    const messages = document.getElementById('messages');
-    const form = document.getElementById('form');
-    const input = document.getElementById('input');
+    const sidebar = document.getElementById('sidebar'),
+          messages = document.getElementById('messages'),
+          form = document.getElementById('form'),
+          input = document.getElementById('input');
     let selectedId = null;
 
-    // Update customer list
     function renderCustomers(list) {
       sidebar.innerHTML = '';
       list.forEach(c => {
         const btn = document.createElement('div');
-        btn.classList.add('customer');
+        btn.className = 'customer';
         if (c.unread) btn.classList.add('customer-flash');
         if (c.id === selectedId) btn.classList.add('selected');
         btn.textContent = c.label;
-        btn.dataset.id = c.id;
         btn.onclick = () => {
           selectedId = c.id;
           socket.emit('select-customer', c.id);
@@ -48,44 +46,45 @@
 
     socket.on('active-customers', renderCustomers);
 
-    // Load history when switching
-    socket.on('message-history', history => {
+    socket.on('message-history', hist => {
       messages.innerHTML = '';
-      history.forEach(e => addMessage(e.from, e.message));
+      hist.forEach(e => addMsg(e.from, e.message));
     });
 
-    // Real-time incoming
     socket.on('receive-message', ({ from, message }) => {
-      addMessage(from, message);
+      addMsg(from, message);
     });
 
-    // Helper to append bubble
-    function addMessage(from, message) {
-      const isSupport = from === 'Support';
-      const div = document.createElement('div');
-      div.className = 'message ' + (isSupport ? 'support' : 'customer');
-
-      const avatar = document.createElement('img');
-      avatar.src = isSupport ? 'support-avatar.png' : 'customer-avatar.png';
-      avatar.className = 'avatar';
-
-      const text = document.createElement('div');
-      text.className = 'text';
-      text.textContent = `${from}: ${message}`;
-
-      div.append(isSupport ? text : avatar, isSupport ? avatar : text);
-      messages.append(div);
-      messages.scrollTop = messages.scrollHeight;
-    }
-
-    // Send from support
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (!input.value || !selectedId) return;
       socket.emit('support-message', { to: selectedId, message: input.value });
-      addMessage('Support', input.value);
+      addMsg('Support', input.value);
       input.value = '';
     });
+
+    function addMsg(from, text) {
+      const isSup = from === 'Support';
+      const div = document.createElement('div');
+      div.className = 'message ' + (isSup ? 'support' : 'customer');
+
+      const img = document.createElement('img');
+      img.className = 'avatar';
+      img.loading = 'lazy';
+      img.src = isSup ? 'support-avatar.png' : 'customer-avatar.png';
+
+      const span = document.createElement('div');
+      span.className = 'text';
+      span.textContent = `${from}: ${text}`;
+
+      if (isSup) {
+        div.append(span, img);
+      } else {
+        div.append(img, span);
+      }
+      messages.append(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
   </script>
 </body>
 </html>
