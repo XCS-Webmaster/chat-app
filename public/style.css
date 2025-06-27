@@ -27,7 +27,7 @@ body {
 
 .customer {
   background-color: #3967d9;
-  color: white;
+  color: #fff;
   border-radius: 10px;
   padding: 0.5em;
   margin: 0.25em 0;
@@ -35,20 +35,12 @@ body {
   cursor: pointer;
   transition: background-color 0.3s;
 }
-
-.customer:hover {
-  background-color: #e52238;
-}
-
-.customer-flash {
-  animation: flash 1s infinite;
-}
-
+.customer:hover { background-color: #e52238; }
+.customer-flash { animation: flash 1s infinite; }
 @keyframes flash {
   0%,100% { background-color: #3967d9; }
   50%      { background-color: #e52238; }
 }
-
 .customer.selected {
   background-color: #e52238 !important;
   animation: none !important;
@@ -62,38 +54,38 @@ body {
   min-width: 0;
 }
 
-/* =================== Messages Container =================== */
+/* ================ Messages Container ================ */
 #messages {
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 0.5em;
   padding: 1em;
   background: #f4f4f4;
   overflow-y: auto;
-  gap: 0.5em;
 }
 
-/* ===================== Bubbles ===================== */
-.message {
+/* ===================== Bubble Wrapper ===================== */
+#messages .message {
   display: flex;
   align-items: center;
+  gap: 10px;
   max-width: 80%;
   margin-bottom: 0.5em;
-  gap: 10px;
+  background: none;       /* no wrapper background */
 }
 
-/* Left vs. Right */
+/* Left vs. Right positioning */
 .message.customer {
   align-self: flex-start;
   flex-direction: row;
 }
-
 .message.support {
   align-self: flex-end;
   flex-direction: row-reverse;
 }
 
-/* Avatar */
+/* ======================== Avatar ======================== */
 .message .avatar {
   width: 100px;
   height: 100px;
@@ -102,35 +94,35 @@ body {
   flex-shrink: 0;
 }
 
-/* Text bubble */
+/* ====================== Text Bubble ====================== */
 .message .text {
   padding: 0.5em;
   border-radius: 10px;
   word-wrap: break-word;
   font-size: 1em;
-  max-width: calc(80% - 110px); /* bubble + avatar */
+  max-width: calc(80% - 110px); /* avatar + gap */
 }
 
-/* Customer bubble styling */
+/* Customer bubble (white bg) */
 .message.customer .text {
-  background: white;
-  color: black;
+  background: #fff;
+  color: #000;
   border: 1px solid #ccc;
 }
 
-/* Support bubble styling */
+/* Support bubble (blue bg) */
 .message.support .text {
   background: #3967d9;
-  color: white;
+  color: #fff;
 }
 
-/* ===================== Form ===================== */
+/* ======================== Form ======================== */
 #form {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5em;
   padding: 1em;
-  background: white;
+  background: #fff;
   border-top: 1px solid #ccc;
   box-sizing: border-box;
 }
@@ -151,26 +143,18 @@ button {
   font-family: Tahoma, sans-serif;
   font-size: 1em;
   background-color: #3967d9;
-  color: white;
+  color: #fff;
   border: none;
   border-radius: 10px;
   transition: background-color 0.25s;
 }
-
 button:hover,
-button:active {
-  background-color: #e52238;
-}
+button:active { background-color: #e52238; }
+button:focus { outline: none; }
 
-button:focus {
-  outline: none;
-}
-
-/* ==================== Responsive ==================== */
+/* ===================== Responsive ===================== */
 @media (max-width: 600px) {
-  #support-panel {
-    flex-direction: column;
-  }
+  #support-panel { flex-direction: column; }
 
   #sidebar {
     width: 100%;
@@ -183,204 +167,7 @@ button:focus {
     margin: 0.25em;
   }
 
-  #form {
-    flex-direction: column;
-  }
+  #form { flex-direction: column; }
 
-  button {
-    width: 100%;
-  }
-}
-/* ==================== Base ==================== */
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Tahoma, sans-serif;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-/* =============== Support Panel Layout =============== */
-#support-panel {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-}
-
-/* ====================== Sidebar ====================== */
-#sidebar {
-  width: 220px;
-  background: #1e1e1e;
-  padding: 1em 0.5em;
-  box-sizing: border-box;
-  overflow-y: auto;
-  flex-shrink: 0;
-}
-
-.customer {
-  background-color: #3967d9;
-  color: white;
-  border-radius: 10px;
-  padding: 0.5em;
-  margin: 0.25em 0;
-  text-align: center;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.customer:hover {
-  background-color: #e52238;
-}
-
-.customer-flash {
-  animation: flash 1s infinite;
-}
-
-@keyframes flash {
-  0%,100% { background-color: #3967d9; }
-  50%      { background-color: #e52238; }
-}
-
-.customer.selected {
-  background-color: #e52238 !important;
-  animation: none !important;
-}
-
-/* ====================== Chat Area ====================== */
-#chat-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-/* =================== Messages Container =================== */
-#messages {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 1em;
-  background: #f4f4f4;
-  overflow-y: auto;
-  gap: 0.5em;
-}
-
-/* ===================== Bubbles ===================== */
-.message {
-  display: flex;
-  align-items: center;
-  max-width: 80%;
-  margin-bottom: 0.5em;
-  gap: 10px;
-}
-
-/* Left vs. Right */
-.message.customer {
-  align-self: flex-start;
-  flex-direction: row;
-}
-
-.message.support {
-  align-self: flex-end;
-  flex-direction: row-reverse;
-}
-
-/* Avatar */
-.message .avatar {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-/* Text bubble */
-.message .text {
-  padding: 0.5em;
-  border-radius: 10px;
-  word-wrap: break-word;
-  font-size: 1em;
-  max-width: calc(80% - 110px); /* bubble + avatar */
-}
-
-/* Customer bubble styling */
-.message.customer .text {
-  background: white;
-  color: black;
-  border: 1px solid #ccc;
-}
-
-/* Support bubble styling */
-.message.support .text {
-  background: #3967d9;
-  color: white;
-}
-
-/* ===================== Form ===================== */
-#form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5em;
-  padding: 1em;
-  background: white;
-  border-top: 1px solid #ccc;
-  box-sizing: border-box;
-}
-
-input {
-  flex: 1;
-  padding: 0.5em;
-  font-size: 1em;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-  min-width: 0;
-}
-
-button {
-  padding: 0.5em 1em;
-  cursor: pointer;
-  font-family: Tahoma, sans-serif;
-  font-size: 1em;
-  background-color: #3967d9;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  transition: background-color 0.25s;
-}
-
-button:hover,
-button:active {
-  background-color: #e52238;
-}
-
-button:focus {
-  outline: none;
-}
-
-/* ==================== Responsive ==================== */
-@media (max-width: 600px) {
-  #support-panel {
-    flex-direction: column;
-  }
-
-  #sidebar {
-    width: 100%;
-    display: flex;
-    overflow-x: auto;
-  }
-
-  .customer {
-    flex: 1 0 auto;
-    margin: 0.25em;
-  }
-
-  #form {
-    flex-direction: column;
-  }
-
-  button {
-    width: 100%;
-  }
+  button { width: 100%; }
 }
