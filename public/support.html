@@ -27,45 +27,41 @@
     const input    = document.getElementById('input');
     let selectedId = null;
 
-    // Render sidebar, flash on ANY unread (>0)
+    // 1) Render & flash sidebar buttons
     socket.on('active-customers', list => {
       sidebar.innerHTML = '';
-      list.forEach(cust => {
+      list.forEach(c => {
         const btn = document.createElement('div');
         btn.className = 'customer';
-        btn.textContent = cust.label;
-        btn.dataset.id = cust.id;
-
-        if (cust.unread > 0) btn.classList.add('customer-flash');
-        if (cust.id === selectedId) btn.classList.add('selected');
-
+        btn.textContent = c.label;
+        btn.dataset.id = c.id;
+        if (c.unread > 0) btn.classList.add('customer-flash');
+        if (c.id === selectedId) btn.classList.add('selected');
         btn.addEventListener('click', () => {
-          selectedId = cust.id;
-          socket.emit('select-customer', cust.id);
+          selectedId = c.id;
+          socket.emit('select-customer', c.id);
           btn.classList.remove('customer-flash');
-          // highlight only this button
-          Array.from(sidebar.children).forEach(b => {
-            b.classList.toggle('selected', b.dataset.id === cust.id);
-          });
+          Array.from(sidebar.children).forEach(b =>
+            b.classList.toggle('selected', b.dataset.id === c.id)
+          );
         });
-
         sidebar.appendChild(btn);
       });
       if (!selectedId) messages.innerHTML = '';
     });
 
-    // Load history
+    // 2) Load history on select
     socket.on('message-history', hist => {
       messages.innerHTML = '';
       hist.forEach(e => addMessage(e.from, e.message));
     });
 
-    // Live incoming (only for selected)
+    // 3) Live incoming for selected only
     socket.on('receive-message', ({ from, message }) => {
       addMessage(from, message);
     });
 
-    // Send from support
+    // 4) Send from support
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (!input.value || !selectedId) return;
@@ -74,7 +70,7 @@
       input.value = '';
     });
 
-    // Append one bubble with name above avatar
+    // 5) Append bubble with name above avatar
     function addMessage(from, text) {
       const isSup = from === 'Support';
       const div = document.createElement('div');
@@ -88,7 +84,9 @@
       const avatar = document.createElement('img');
       avatar.className = 'avatar';
       avatar.loading = 'lazy';
-      avatar.src = isSup ? 'support-avatar.png' : 'customer-avatar.png';
+      avatar.src = isSup
+        ? 'support-avatar.png'
+        : 'customer-avatar.png';
       ac.append(name, avatar);
 
       const bubble = document.createElement('div');

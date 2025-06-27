@@ -22,7 +22,6 @@
     const socket = io({
       query: { role: 'customer', userId: userId || '' }
     });
-
     const messages = document.getElementById('messages');
     const form     = document.getElementById('form');
     const input    = document.getElementById('input');
@@ -60,7 +59,9 @@
       const avatar = document.createElement('img');
       avatar.className = 'avatar';
       avatar.loading = 'lazy';
-      avatar.src = isSup ? 'support-avatar.png' : 'customer-avatar.png';
+      avatar.src = isSup
+        ? 'support-avatar.png'
+        : 'customer-avatar.png';
       ac.append(name, avatar);
 
       const bubble = document.createElement('div');
