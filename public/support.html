@@ -20,12 +20,15 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket   = io({ query: { role: 'support' } });
-    const sidebar  = document.getElementById('sidebar');
-    const messages = document.getElementById('messages');
-    const form     = document.getElementById('form');
-    const input    = document.getElementById('input');
-    let selectedId = null;
+    const socket         = io({ query: { role: 'support' } });
+    const sidebar        = document.getElementById('sidebar');
+    const messages       = document.getElementById('messages');
+    const form           = document.getElementById('form');
+    const input          = document.getElementById('input');
+    const firstMsgAudio  = new Audio('/first-msg.mp3');
+    const notifyAudio    = new Audio('/notify.mp3');
+    const playedFirstMap = {};
+    let selectedId       = null;
 
     socket.on('active-customers', list => {
       sidebar.innerHTML = '';
@@ -48,10 +51,13 @@
     });
 
     socket.on('receive-message', ({ id, from, message }) => {
-      flashButton(id);
-      if (id === selectedId) {
-        addMessage(from, message);
+      if (!playedFirstMap[id]) {
+        firstMsgAudio.play().catch(() => {});
+        playedFirstMap[id] = true;
       }
+      notifyAudio.play().catch(() => {});
+      flashButton(id);
+      if (id === selectedId) addMessage(from, message);
     });
 
     form.onsubmit = e => {
@@ -88,7 +94,6 @@
       const isSup = from === 'Support';
       const div   = document.createElement('div');
       div.className = 'message ' + (isSup ? 'support' : 'customer');
-
       const ac     = document.createElement('div');
       ac.className = 'avatar-container';
       const name   = document.createElement('div');
@@ -99,11 +104,9 @@
       avatar.loading = 'lazy';
       avatar.src     = isSup ? 'support-avatar.png' : 'customer-avatar.png';
       ac.append(name, avatar);
-
       const bubble = document.createElement('div');
       bubble.className = 'text';
       bubble.textContent = text;
-
       div.append(ac, bubble);
       messages.append(div);
       messages.scrollTop = messages.scrollHeight;

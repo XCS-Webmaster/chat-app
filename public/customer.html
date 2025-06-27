@@ -18,20 +18,22 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    let userId = localStorage.getItem('userId');
-    const socket = io({ query: { role: 'customer', userId: userId || '' } });
-    const messages = document.getElementById('messages');
-    const form     = document.getElementById('form');
-    const input    = document.getElementById('input');
+    let userId        = localStorage.getItem('userId');
+    const socket      = io({ query: { role: 'customer', userId: userId || '' } });
+    const messages    = document.getElementById('messages');
+    const form        = document.getElementById('form');
+    const input       = document.getElementById('input');
+    const notifyAudio = new Audio('/notify.mp3');
 
     socket.on('init', data => {
       userId = data.userId;
       localStorage.setItem('userId', userId);
     });
 
-    socket.on('receive-message', ({ from, message }) =>
-      addMessage(from, message)
-    );
+    socket.on('receive-message', ({ from, message }) => {
+      notifyAudio.play().catch(() => {});
+      addMessage(from, message);
+    });
 
     form.onsubmit = e => {
       e.preventDefault();
@@ -46,7 +48,6 @@
       const isSup = from === 'Support';
       const div   = document.createElement('div');
       div.className = 'message ' + (isSup ? 'support' : 'customer');
-
       const ac     = document.createElement('div');
       ac.className = 'avatar-container';
       const name   = document.createElement('div');
@@ -57,11 +58,9 @@
       avatar.loading = 'lazy';
       avatar.src     = isSup ? 'support-avatar.png' : 'customer-avatar.png';
       ac.append(name, avatar);
-
       const bubble = document.createElement('div');
       bubble.className = 'text';
       bubble.textContent = text;
-
       div.append(ac, bubble);
       messages.append(div);
       messages.scrollTop = messages.scrollHeight;
