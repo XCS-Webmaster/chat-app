@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>XPRESS Support</title>
   <link rel="stylesheet" href="/style.css"/>
@@ -20,79 +20,101 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket = io({ query: { role: 'support' } });
+    const socket   = io({ query: { role: 'support' } });
     const sidebar  = document.getElementById('sidebar');
     const messages = document.getElementById('messages');
     const form     = document.getElementById('form');
     const input    = document.getElementById('input');
     let selectedId, origTitle = document.title, flashInt;
 
-    function renderList(list) {
+    // 1) Render & flash sidebar buttons
+    socket.on('active-customers', list => {
       sidebar.innerHTML = '';
-      list.forEach(c => {
+      list.forEach(cust => {
         const btn = document.createElement('div');
         btn.className = 'customer';
-        if (c.unread) btn.classList.add('customer-flash');
-        if (c.id === selectedId) btn.classList.add('selected');
-        btn.textContent = c.label;
-        btn.onclick = () => {
-          selectedId = c.id;
-          socket.emit('select-customer', c.id);
-        };
-        sidebar.append(btn);
-      });
-      if (!selectedId) messages.innerHTML = '';
-    }
+        btn.textContent = cust.label;
+        btn.dataset.id = cust.id;
 
-    socket.on('active-customers', renderList);
-    socket.on('message-history', hist => {
+        // flash if unread
+        if (cust.unread > 0) {
+          btn.classList.add('customer-flash');
+        }
+        // mark selected
+        if (cust.id === selectedId) {
+          btn.classList.add('selected');
+          btn.classList.remove('customer-flash');
+        }
+
+        btn.addEventListener('click', () => {
+          selectedId = cust.id;
+          socket.emit('select-customer', cust.id);
+          // stop flashing instantly
+          btn.classList.remove('customer-flash');
+        });
+
+        sidebar.appendChild(btn);
+      });
+      // clear chat pane if none selected
+      if (!selectedId) messages.innerHTML = '';
+    });
+
+    // 2) Load history on select
+    socket.on('message-history', history => {
       messages.innerHTML = '';
-      hist.forEach(e => addMessage(e.from, e.message));
+      history.forEach(e => addMessage(e.from, e.message));
       clearFlash();
     });
-    socket.on('receive-message', ({from, message}) => {
+
+    // 3) Live incoming
+    socket.on('receive-message', ({ from, message }) => {
       addMessage(from, message);
       if (!document.hasFocus()) startFlash();
+      // auto-clear unread on server & UI
       if (selectedId) socket.emit('select-customer', selectedId);
     });
 
+    // 4) Send from support
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (!input.value || !selectedId) return;
-      socket.emit('support-message', {to: selectedId, message: input.value});
+      socket.emit('support-message', { to: selectedId, message: input.value });
       addMessage('Support', input.value);
       input.value = '';
     });
 
+    // 5) Append bubble
     function addMessage(from, text) {
       const isSup = from === 'Support';
       const div   = document.createElement('div');
       div.className = 'message ' + (isSup ? 'support' : 'customer');
 
-      const img  = document.createElement('img');
+      const img = document.createElement('img');
       img.className = 'avatar';
       img.loading = 'lazy';
       img.src     = isSup ? 'support-avatar.png' : 'customer-avatar.png';
 
-      const txt  = document.createElement('div');
-      txt.className = 'text';
-      txt.textContent = `${from}: ${text}`;
+      const bubble = document.createElement('div');
+      bubble.className = 'text';
+      bubble.textContent = `${from}: ${text}`;
 
-      div.append(isSup ? txt : img, isSup ? img : txt);
+      div.append(img, bubble);
       messages.append(div);
       messages.scrollTop = messages.scrollHeight;
     }
 
+    // 6) Tab flashing
     function startFlash() {
       if (flashInt) return;
       flashInt = setInterval(() => {
-        document.title = document.title === origTitle ? '🔔 New Msg' : origTitle;
+        document.title = document.title === origTitle
+          ? '🔔 New Msg' : origTitle;
       }, 1000);
     }
     function clearFlash() {
       clearInterval(flashInt);
-      document.title = origTitle;
       flashInt = null;
+      document.title = origTitle;
     }
     window.addEventListener('focus', clearFlash);
   </script>

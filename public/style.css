@@ -8,28 +8,27 @@ html, body {
   height: 100%;
   font-family: Tahoma, sans-serif;
 }
-
-/* ==================== Layout ==================== */
-#support-panel {
+body {
   display: flex;
-  height: 100%;
+  flex-direction: column;
+  height: 100vh;
+  background: #f4f4f4;
 }
 
+/* ==================== Support Panel Layout ==================== */
+#support-panel {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ==================== Sidebar ==================== */
 #sidebar {
   width: 220px;
   background: #1e1e1e;
   padding: 1em;
   overflow-y: auto;
 }
-
-#chat-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: #f4f4f4;
-}
-
-/* ==================== Sidebar Buttons ==================== */
 #sidebar .customer {
   background: #3967d9;
   color: #fff;
@@ -43,26 +42,34 @@ html, body {
 #sidebar .customer:hover {
   background: #e52238;
 }
-#sidebar .customer.selected {
-  background: #e52238;
-}
 #sidebar .customer-flash {
   animation: flash 1s infinite;
 }
 @keyframes flash {
-  0%,100% { background: #3967d9; }
-  50%     { background: #e52238; }
+  0%,100% { background-color: #3967d9; }
+  50%     { background-color: #e52238; }
+}
+#sidebar .customer.selected {
+  background: #e52238 !important;
+  animation: none !important;
 }
 
-/* ==================== Customer Page Header ==================== */
+/* ==================== Chat Area (common) ==================== */
+#chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Customer Page Header ---- */
 #chat-area > header {
   background: #3967d9;
   color: #fff;
-  padding: 0.75em;
   text-align: center;
+  padding: 0.75em;
 }
 
-/* ==================== Messages ==================== */
+/* ==================== Messages Container ==================== */
 #messages {
   flex: 1;
   overflow-y: auto;
@@ -70,21 +77,17 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 0.5em;
+  background: #f4f4f4;
 }
 
 /* ==================== Bubbles ==================== */
 .message {
   display: flex;
-  align-items: flex-start;
   gap: 10px;
   max-width: 100%;
 }
-.message.customer {
-  flex-direction: row;
-}
-.message.support {
-  flex-direction: row-reverse;
-}
+.message.customer { flex-direction: row; }
+.message.support  { flex-direction: row-reverse; }
 .message .avatar {
   width: 100px;
   height: 100px;
@@ -129,6 +132,7 @@ html, body {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  font-weight: bold;
   transition: background 0.2s;
 }
 #form button:hover {

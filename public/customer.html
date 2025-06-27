@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>XPRESS Chat</title>
   <link rel="stylesheet" href="/style.css"/>
@@ -19,21 +19,26 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
     let userId = localStorage.getItem('userId');
-    const socket = io({ query: { role: 'customer', userId: userId || '' } });
+    const socket = io({
+      query: { role: 'customer', userId: userId || '' }
+    });
 
     const messages = document.getElementById('messages');
     const form     = document.getElementById('form');
     const input    = document.getElementById('input');
 
+    // Receive your assigned/recovered userId
     socket.on('init', data => {
       userId = data.userId;
       localStorage.setItem('userId', userId);
     });
 
-    socket.on('receive-message', ({from, message}) => {
-      addMessage(from, message);
-    });
+    // Incoming from support
+    socket.on('receive-message', ({ from, message }) =>
+      addMessage(from, message)
+    );
 
+    // Send from customer
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (!input.value) return;
@@ -42,24 +47,26 @@
       input.value = '';
     });
 
+    // Append bubble (same as support)
     function addMessage(from, text) {
       const isSup = from === 'Support';
       const div   = document.createElement('div');
       div.className = 'message ' + (isSup ? 'support' : 'customer');
 
-      const img  = document.createElement('img');
+      const img = document.createElement('img');
       img.className = 'avatar';
       img.loading = 'lazy';
       img.src     = isSup ? 'support-avatar.png' : 'customer-avatar.png';
 
-      const txt  = document.createElement('div');
-      txt.className = 'text';
-      txt.textContent = `${from}: ${text}`;
+      const bubble = document.createElement('div');
+      bubble.className = 'text';
+      bubble.textContent = `${from}: ${text}`;
 
-      div.append(isSup ? txt : img, isSup ? img : txt);
+      div.append(img, bubble);
       messages.append(div);
       messages.scrollTop = messages.scrollHeight;
     }
   </script>
 </body>
 </html>
+```
