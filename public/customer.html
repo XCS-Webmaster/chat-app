@@ -20,7 +20,9 @@
   <script>
     let userId = localStorage.getItem('userId');
 
-    const socket = io({ query: { role: 'customer', userId: userId || '' } });
+    const socket = io({
+      query: { role: 'customer', userId: userId || '' }
+    });
 
     const messages = document.getElementById('messages');
     const form     = document.getElementById('form');
@@ -51,7 +53,9 @@
       const avatar = document.createElement('img');
       avatar.className = 'avatar';
       avatar.loading = 'lazy';
-      avatar.src = isSup ? 'support-avatar.png' : 'customer-avatar.png';
+      avatar.src = isSup 
+        ? 'support-avatar.png' 
+        : 'customer-avatar.png';
 
       const bubble = document.createElement('div');
       bubble.className = 'text';
@@ -64,4 +68,3 @@
   </script>
 </body>
 </html>
-```
