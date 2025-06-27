@@ -1,6 +1,6 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
-const http     = require('http');
+const http = require('http');
 const socketIO = require('socket.io');
 
 const app = express();
@@ -13,8 +13,7 @@ const PORT = process.env.PORT || 3000;
 
 let supportSocket = null;
 let supportSelected = null;
-const customers = {}; 
-// customers[userId] = { socket, label, history: [], unread: 0 }
+const customers = {};
 
 io.on('connection', socket => {
   const { role, userId } = socket.handshake.query;
@@ -44,7 +43,6 @@ io.on('connection', socket => {
       supportSocket = null;
       supportSelected = null;
     });
-
   } else if (role === 'customer') {
     let id = userId;
     if (!id || !customers[id]) {
@@ -60,6 +58,7 @@ io.on('connection', socket => {
     }
 
     socket.emit('init', { userId: id });
+    broadcastCustomers();
 
     socket.on('customer-message', message => {
       const c = customers[id];
@@ -79,7 +78,6 @@ io.on('connection', socket => {
       customers[id].socket = null;
       broadcastCustomers();
     });
-
   } else {
     socket.disconnect(true);
   }
@@ -98,3 +96,4 @@ function broadcastCustomers() {
 server.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
 });
+```
