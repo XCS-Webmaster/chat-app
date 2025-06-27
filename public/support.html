@@ -51,7 +51,7 @@
     });
 
     socket.on('receive-message', ({ id, from, message }) => {
-      notifyAudio.play().catch(() => {});
+      notifyAudio.play().catch(()=>{});
       flashButton(id);
       if (id === selectedId) addMessage(from, message);
     });
@@ -64,7 +64,6 @@
         message: input.value
       });
       addMessage('Support', input.value);
-      notifyAudio.play().catch(() => {});
       input.value = '';
       form.querySelector('button').blur();
     };
@@ -91,9 +90,8 @@
     }
 
     function addMessage(from, text) {
-      const isSup = from === 'Support';
       const div   = document.createElement('div');
-      div.className = 'message ' + (isSup ? 'support' : 'customer');
+      div.className = 'message ' + (from === 'Support' ? 'support' : 'customer');
 
       const ac     = document.createElement('div');
       ac.className = 'avatar-container';
@@ -102,9 +100,7 @@
       name.textContent = from;
       const avatar = document.createElement('img');
       avatar.className = 'avatar';
-      avatar.src     = isSup
-        ? 'support-avatar.png'
-        : 'customer-avatar.png';
+      avatar.src     = from === 'Support' ? 'support-avatar.png' : 'customer-avatar.png';
       ac.append(name, avatar);
 
       const bubble = document.createElement('div');
