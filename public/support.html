@@ -30,7 +30,6 @@
         origTitle  = document.title,
         flashInt   = null;
 
-    // Render sidebar list
     socket.on('active-customers', list => {
       sidebar.innerHTML = '';
       list.forEach(c => {
@@ -48,22 +47,18 @@
       if (!selectedId) messages.innerHTML = '';
     });
 
-    // Load full history when switching
     socket.on('message-history', hist => {
       messages.innerHTML = '';
       hist.forEach(e => addMessage(e.from, e.message));
       clearFlash();
     });
 
-    // Incoming live message
     socket.on('receive-message', ({ from, message }) => {
       addMessage(from, message);
       if (!document.hasFocus()) startFlash();
-      // reset unread count display
       if (selectedId) socket.emit('select-customer', selectedId);
     });
 
-    // Send from support
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (!input.value || !selectedId) return;
@@ -72,7 +67,6 @@
       input.value = '';
     });
 
-    // Append one bubble
     function addMessage(from, text) {
       const isSup = from === 'Support';
       const div = document.createElement('div');
@@ -92,7 +86,6 @@
       messages.scrollTop = messages.scrollHeight;
     }
 
-    // Title‐bar flash on new message
     function startFlash() {
       if (flashInt) return;
       flashInt = setInterval(() => {
@@ -110,4 +103,3 @@
   </script>
 </body>
 </html>
-```
