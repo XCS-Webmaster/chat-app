@@ -7,6 +7,9 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
+  <audio id="firstMsgAudio" preload="auto" src="/first-msg.mp3"></audio>
+  <audio id="notifyAudio"   preload="auto" src="/notify.mp3"></audio>
+
   <div id="support-panel">
     <div id="sidebar"></div>
     <div id="chat-area">
@@ -20,15 +23,14 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket         = io({ query: { role: 'support' } });
-    const sidebar        = document.getElementById('sidebar');
-    const messages       = document.getElementById('messages');
-    const form           = document.getElementById('form');
-    const input          = document.getElementById('input');
-    const firstMsgAudio  = new Audio('/first-msg.mp3');
-    const notifyAudio    = new Audio('/notify.mp3');
-    const playedFirstMap = {};
-    let selectedId       = null;
+    const socket        = io({ query: { role: 'support' } });
+    const sidebar       = document.getElementById('sidebar');
+    const messages      = document.getElementById('messages');
+    const form          = document.getElementById('form');
+    const input         = document.getElementById('input');
+    const firstMsgAudio = document.getElementById('firstMsgAudio');
+    const notifyAudio   = document.getElementById('notifyAudio');
+    let selectedId      = null;
 
     socket.on('active-customers', list => {
       sidebar.innerHTML = '';
@@ -51,9 +53,9 @@
     });
 
     socket.on('receive-message', ({ id, from, message }) => {
-      if (!playedFirstMap[id]) {
+      if (!localStorage.getItem('played_' + id)) {
         firstMsgAudio.play().catch(() => {});
-        playedFirstMap[id] = true;
+        localStorage.setItem('played_' + id, '1');
       }
       notifyAudio.play().catch(() => {});
       flashButton(id);
@@ -72,6 +74,8 @@
     function selectCustomer(btn) {
       selectedId = btn.dataset.id;
       socket.emit('select-customer', selectedId);
+      firstMsgAudio.pause();
+      firstMsgAudio.currentTime = 0;
       clearAllFlashes();
       btn.classList.add('selected');
     }
@@ -94,6 +98,7 @@
       const isSup = from === 'Support';
       const div   = document.createElement('div');
       div.className = 'message ' + (isSup ? 'support' : 'customer');
+
       const ac     = document.createElement('div');
       ac.className = 'avatar-container';
       const name   = document.createElement('div');
@@ -101,12 +106,13 @@
       name.textContent = from;
       const avatar = document.createElement('img');
       avatar.className = 'avatar';
-      avatar.loading = 'lazy';
       avatar.src     = isSup ? 'support-avatar.png' : 'customer-avatar.png';
       ac.append(name, avatar);
+
       const bubble = document.createElement('div');
       bubble.className = 'text';
       bubble.textContent = text;
+
       div.append(ac, bubble);
       messages.append(div);
       messages.scrollTop = messages.scrollHeight;
