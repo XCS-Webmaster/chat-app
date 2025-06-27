@@ -87,6 +87,7 @@ body {
   display: flex;
   gap: 10px;
   max-width: 100%;
+  align-items: center;
 }
 .message.customer {
   flex-direction: row;
@@ -114,6 +115,8 @@ body {
 
 /* Text */
 .text {
+  display: flex;
+  align-items: center;
   padding: 0.5em;
   border-radius: 8px;
   word-wrap: break-word;
@@ -121,9 +124,8 @@ body {
   font-size: 0.95em;
 }
 .message.customer .text {
-  background: #fff;
-  border: 1px solid #3967d9;
-  color: #3967d9;
+  background: #3967d9;
+  color: #fff;
 }
 .message.support .text {
   background: #3967d9;
