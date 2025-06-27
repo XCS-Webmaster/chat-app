@@ -25,6 +25,7 @@ body {
   flex-shrink: 0;
 }
 
+/* Global .customer no longer has cursor:pointer */
 .customer {
   background: #3967d9;
   color: #fff;
@@ -32,16 +33,19 @@ body {
   padding: 0.5em;
   margin: 0.25em 0;
   text-align: center;
-  cursor: pointer;
   transition: background 0.3s;
 }
 
-/* hover only in sidebar */
+/* Sidebar only gets the pointer */
+#sidebar .customer {
+  cursor: pointer;
+}
+
 #sidebar .customer:hover {
   background: #e52238;
 }
 
-.customer-flash {
+#sidebar .customer-flash {
   animation: flash 1s infinite;
 }
 @keyframes flash {
@@ -49,7 +53,7 @@ body {
   50%     { background: #e52238; }
 }
 
-.customer.selected {
+#sidebar .customer.selected {
   background: #e52238 !important;
   animation: none !important;
 }
@@ -81,6 +85,7 @@ body {
   max-width: 80%;
   margin-bottom: 0.5em;
   background: none;
+  cursor: default; /* ensure no hand icon on bubbles */
 }
 
 .message.customer {
@@ -177,7 +182,8 @@ button:focus {
     overflow-x: auto;
   }
 
-  .customer {
+  /* Sidebar items keep pointer, bubbles do not */
+  #sidebar .customer {
     flex: 1 0 auto;
     margin: 0.25em;
   }
