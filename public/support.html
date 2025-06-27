@@ -25,9 +25,9 @@
     const messages = document.getElementById('messages');
     const form     = document.getElementById('form');
     const input    = document.getElementById('input');
-    let selectedId, origTitle = document.title, flashInt;
+    let selectedId = null;
 
-    // 1) Render & flash sidebar buttons
+    // Render sidebar, flash on ANY unread (>0)
     socket.on('active-customers', list => {
       sidebar.innerHTML = '';
       list.forEach(cust => {
@@ -36,45 +36,36 @@
         btn.textContent = cust.label;
         btn.dataset.id = cust.id;
 
-        // flash if unread
-        if (cust.unread > 0) {
-          btn.classList.add('customer-flash');
-        }
-        // mark selected
-        if (cust.id === selectedId) {
-          btn.classList.add('selected');
-          btn.classList.remove('customer-flash');
-        }
+        if (cust.unread > 0) btn.classList.add('customer-flash');
+        if (cust.id === selectedId) btn.classList.add('selected');
 
         btn.addEventListener('click', () => {
           selectedId = cust.id;
           socket.emit('select-customer', cust.id);
-          // stop flashing instantly
           btn.classList.remove('customer-flash');
+          // highlight only this button
+          Array.from(sidebar.children).forEach(b => {
+            b.classList.toggle('selected', b.dataset.id === cust.id);
+          });
         });
 
         sidebar.appendChild(btn);
       });
-      // clear chat pane if none selected
       if (!selectedId) messages.innerHTML = '';
     });
 
-    // 2) Load history on select
-    socket.on('message-history', history => {
+    // Load history
+    socket.on('message-history', hist => {
       messages.innerHTML = '';
-      history.forEach(e => addMessage(e.from, e.message));
-      clearFlash();
+      hist.forEach(e => addMessage(e.from, e.message));
     });
 
-    // 3) Live incoming
+    // Live incoming (only for selected)
     socket.on('receive-message', ({ from, message }) => {
       addMessage(from, message);
-      if (!document.hasFocus()) startFlash();
-      // auto-clear unread on server & UI
-      if (selectedId) socket.emit('select-customer', selectedId);
     });
 
-    // 4) Send from support
+    // Send from support
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (!input.value || !selectedId) return;
@@ -83,40 +74,31 @@
       input.value = '';
     });
 
-    // 5) Append bubble
+    // Append one bubble with name above avatar
     function addMessage(from, text) {
       const isSup = from === 'Support';
-      const div   = document.createElement('div');
+      const div = document.createElement('div');
       div.className = 'message ' + (isSup ? 'support' : 'customer');
 
-      const img = document.createElement('img');
-      img.className = 'avatar';
-      img.loading = 'lazy';
-      img.src     = isSup ? 'support-avatar.png' : 'customer-avatar.png';
+      const ac = document.createElement('div');
+      ac.className = 'avatar-container';
+      const name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = from;
+      const avatar = document.createElement('img');
+      avatar.className = 'avatar';
+      avatar.loading = 'lazy';
+      avatar.src = isSup ? 'support-avatar.png' : 'customer-avatar.png';
+      ac.append(name, avatar);
 
       const bubble = document.createElement('div');
       bubble.className = 'text';
-      bubble.textContent = `${from}: ${text}`;
+      bubble.textContent = text;
 
-      div.append(img, bubble);
+      div.append(ac, bubble);
       messages.append(div);
       messages.scrollTop = messages.scrollHeight;
     }
-
-    // 6) Tab flashing
-    function startFlash() {
-      if (flashInt) return;
-      flashInt = setInterval(() => {
-        document.title = document.title === origTitle
-          ? '🔔 New Msg' : origTitle;
-      }, 1000);
-    }
-    function clearFlash() {
-      clearInterval(flashInt);
-      flashInt = null;
-      document.title = origTitle;
-    }
-    window.addEventListener('focus', clearFlash);
   </script>
 </body>
 </html>

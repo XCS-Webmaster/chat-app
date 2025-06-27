@@ -1,47 +1,25 @@
-/* ==================== Reset & Base ==================== */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-html, body {
-  height: 100%;
-  font-family: Tahoma, sans-serif;
-}
-body {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background: #f4f4f4;
-}
+/* Reset & Base */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: Tahoma, sans-serif; }
+body { display: flex; flex-direction: column; height: 100vh; background: #f4f4f4; }
 
-/* ==================== Support Panel Layout ==================== */
+/* Support Panel Layout */
 #support-panel {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
+  display: flex; flex: 1; overflow: hidden;
 }
 
-/* ==================== Sidebar ==================== */
+/* Sidebar */
 #sidebar {
-  width: 220px;
-  background: #1e1e1e;
-  padding: 1em;
-  overflow-y: auto;
+  width: 220px; background: #1e1e1e;
+  padding: 1em; overflow-y: auto;
 }
 #sidebar .customer {
-  background: #3967d9;
-  color: #fff;
-  padding: 0.5em;
-  margin-bottom: 0.5em;
-  border-radius: 5px;
-  text-align: center;
-  cursor: pointer;
-  transition: background 0.2s;
+  background: #3967d9; color: #fff;
+  padding: 0.5em; margin-bottom: 0.5em;
+  border-radius: 5px; text-align: center;
+  cursor: pointer; transition: background 0.2s;
 }
-#sidebar .customer:hover {
-  background: #e52238;
-}
+#sidebar .customer:hover { background: #e52238; }
 #sidebar .customer-flash {
   animation: flash 1s infinite;
 }
@@ -54,102 +32,84 @@ body {
   animation: none !important;
 }
 
-/* ==================== Chat Area (common) ==================== */
+/* Chat Area (common) */
 #chat-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  flex: 1; display: flex; flex-direction: column;
 }
 
-/* ---- Customer Page Header ---- */
+/* Customer Page Header */
 #chat-area > header {
-  background: #3967d9;
-  color: #fff;
-  text-align: center;
-  padding: 0.75em;
+  background: #3967d9; color: #fff;
+  text-align: center; padding: 0.75em;
 }
 
-/* ==================== Messages Container ==================== */
+/* Messages Container */
 #messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1em;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
+  flex: 1; overflow-y: auto;
+  padding: 1em; display: flex;
+  flex-direction: column; gap: 0.5em;
   background: #f4f4f4;
 }
 
-/* ==================== Bubbles ==================== */
+/* Bubbles */
 .message {
-  display: flex;
-  gap: 10px;
-  max-width: 100%;
+  display: flex; gap: 10px; max-width: 100%;
 }
 .message.customer { flex-direction: row; }
 .message.support  { flex-direction: row-reverse; }
+
+/* Avatar + Name */
+.message .avatar-container {
+  display: flex; flex-direction: column; align-items: center;
+}
+.message .avatar-container .name {
+  font-weight: bold; margin-bottom: 4px;
+}
 .message .avatar {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.message .text {
-  padding: 0.5em;
-  border-radius: 8px;
-  word-wrap: break-word;
-  max-width: calc(100% - 110px);
-  font-size: 0.95em;
-}
-.message.customer .text {
-  background: #fff;
-  border: 1px solid #ccc;
-  color: #000;
-}
-.message.support .text {
-  background: #3967d9;
-  color: #fff;
+  width: 100px; height: 100px;
+  border-radius: 50%; object-fit: cover;
 }
 
-/* ==================== Form ==================== */
+/* Text bubble */
+.message .text {
+  padding: 0.5em; border-radius: 8px;
+  word-wrap: break-word; font-size: 0.95em;
+  max-width: calc(100% - 110px);
+}
+.message.customer .text {
+  background: #fff; border: 1px solid #ccc; color: #000;
+}
+.message.support .text {
+  background: #3967d9; color: #fff;
+}
+
+/* Form pinned to bottom */
 #form {
-  display: flex;
-  padding: 1em;
-  background: #fff;
-  border-top: 1px solid #ccc;
+  display: flex; padding: 1em;
+  background: #fff; border-top: 1px solid #ccc;
   gap: 0.5em;
 }
 #form input {
-  flex: 1;
-  padding: 0.5em;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  flex: 1; padding: 0.5em;
+  border: 1px solid #ccc; border-radius: 5px;
 }
 #form button {
   padding: 0.5em 1em;
-  background: #3967d9;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
+  background: #3967d9; color: #fff;
+  border: none; border-radius: 5px;
+  cursor: pointer; font-weight: bold;
   transition: background 0.2s;
 }
-#form button:hover {
-  background: #e52238;
-}
+#form button:hover { background: #e52238; }
 
-/* ==================== Responsive ==================== */
+/* Responsive */
 @media (max-width: 600px) {
   #support-panel { flex-direction: column; }
   #sidebar {
-    width: 100%;
-    display: flex;
-    overflow-x: auto;
+    width: 100%; display: flex; overflow-x: auto;
   }
   #sidebar .customer {
-    flex: 1;
-    margin-right: 0.5em;
+    flex: 1; margin-right: 0.5em;
   }
   #form { flex-direction: column; }
   #form button { width: 100%; }
