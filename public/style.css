@@ -1,4 +1,4 @@
-/* ==================== Base ==================== */
+/* ===== Base ===== */
 body {
   margin: 0;
   padding: 0;
@@ -8,14 +8,14 @@ body {
   flex-direction: column;
 }
 
-/* =============== Support Panel Layout =============== */
+/* ===== Support Panel Layout ===== */
 #support-panel {
   display: flex;
   height: 100vh;
   overflow: hidden;
 }
 
-/* ====================== Sidebar ====================== */
+/* ===== Sidebar ===== */
 #sidebar {
   width: 220px;
   background: #1e1e1e;
@@ -25,20 +25,15 @@ body {
   flex-shrink: 0;
 }
 
-/* Global .customer no longer has cursor:pointer */
-.customer {
+#sidebar .customer {
   background: #3967d9;
   color: #fff;
   border-radius: 10px;
   padding: 0.5em;
   margin: 0.25em 0;
   text-align: center;
-  transition: background 0.3s;
-}
-
-/* Sidebar only gets the pointer */
-#sidebar .customer {
   cursor: pointer;
+  transition: background 0.3s;
 }
 
 #sidebar .customer:hover {
@@ -58,7 +53,7 @@ body {
   animation: none !important;
 }
 
-/* ====================== Chat Area ====================== */
+/* ===== Chat Area ===== */
 #chat-area {
   flex: 1;
   display: flex;
@@ -66,7 +61,12 @@ body {
   min-width: 0;
 }
 
-/* ================ Messages Container ================ */
+#chat-area header {
+  background: #3967d9;
+  color: white;
+  padding: 0.5em 1em;
+}
+
 #messages {
   flex: 1;
   display: flex;
@@ -77,15 +77,14 @@ body {
   overflow-y: auto;
 }
 
-/* ===================== Bubbles ===================== */
+/* ===== Bubbles ===== */
 .message {
   display: flex;
   align-items: center;
   gap: 10px;
-  max-width: 80%;
   margin-bottom: 0.5em;
   background: none;
-  cursor: default; /* ensure no hand icon on bubbles */
+  cursor: default;
 }
 
 .message.customer {
@@ -98,23 +97,20 @@ body {
   flex-direction: row-reverse;
 }
 
-/* Avatar */
 .message .avatar {
   width: 100px;
   height: 100px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  loading: lazy;
 }
 
-/* Text bubble */
 .message .text {
   padding: 0.5em;
   border-radius: 10px;
   word-wrap: break-word;
   font-size: 1em;
-  max-width: calc(80% - 110px);
+  max-width: calc(100% - 120px); /* virtually full width */
 }
 
 .message.customer .text {
@@ -129,7 +125,7 @@ body {
   border: none;
 }
 
-/* ===================== Form ===================== */
+/* ===== Form ===== */
 #form {
   display: flex;
   gap: 0.5em;
@@ -170,7 +166,7 @@ button:focus {
   outline: none;
 }
 
-/* ==================== Responsive ==================== */
+/* ===== Responsive ===== */
 @media (max-width: 600px) {
   #support-panel {
     flex-direction: column;
@@ -182,7 +178,6 @@ button:focus {
     overflow-x: auto;
   }
 
-  /* Sidebar items keep pointer, bubbles do not */
   #sidebar .customer {
     flex: 1 0 auto;
     margin: 0.25em;

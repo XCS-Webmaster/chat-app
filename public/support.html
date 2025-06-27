@@ -10,6 +10,7 @@
   <div id="support-panel">
     <div id="sidebar"></div>
     <div id="chat-area">
+      <header><h2>XPRESS Support Dashboard</h2></header>
       <div id="messages"></div>
       <form id="form">
         <input id="input" type="text" placeholder="Type a message…" autocomplete="off"/>
@@ -25,7 +26,9 @@
           messages = document.getElementById('messages'),
           form = document.getElementById('form'),
           input = document.getElementById('input');
-    let selectedId = null;
+    let selectedId = null,
+        origTitle = document.title,
+        flashInt = null;
 
     socket.on('active-customers', list => {
       sidebar.innerHTML = '';
@@ -47,10 +50,13 @@
     socket.on('message-history', hist => {
       messages.innerHTML = '';
       hist.forEach(e => addMessage(e.from, e.message));
+      clearFlash();
     });
 
     socket.on('receive-message', ({ from, message }) => {
       addMessage(from, message);
+      if (!document.hasFocus()) startFlash();
+      clearUnread(from);
     });
 
     form.addEventListener('submit', e => {
@@ -62,24 +68,45 @@
     });
 
     function addMessage(from, text) {
-      const isSupport = from === 'Support';
+      const isSup = from === 'Support';
       const div = document.createElement('div');
-      div.className = 'message ' + (isSupport ? 'support' : 'customer');
+      div.className = 'message ' + (isSup ? 'support' : 'customer');
 
       const avatar = document.createElement('img');
       avatar.className = 'avatar';
       avatar.loading = 'lazy';
-      avatar.src = isSupport ? 'support-avatar.png' : 'customer-avatar.png';
+      avatar.src = isSup ? 'support-avatar.png' : 'customer-avatar.png';
 
       const bubble = document.createElement('div');
       bubble.className = 'text';
       bubble.textContent = `${from}: ${text}`;
 
-      // always avatar then bubble—CSS flex-direction handles left/right
       div.append(avatar, bubble);
       messages.append(div);
       messages.scrollTop = messages.scrollHeight;
     }
+
+    function clearUnread(label) {
+      // clear unread on that customer
+      if (selectedId) {
+        socket.emit('select-customer', selectedId);
+      }
+    }
+
+    function startFlash() {
+      if (flashInt) return;
+      flashInt = setInterval(() => {
+        document.title = document.title === origTitle ? '🔔 New Message' : origTitle;
+      }, 1000);
+    }
+
+    function clearFlash() {
+      clearInterval(flashInt);
+      flashInt = null;
+      document.title = origTitle;
+    }
+
+    window.addEventListener('focus', clearFlash);
   </script>
 </body>
 </html>

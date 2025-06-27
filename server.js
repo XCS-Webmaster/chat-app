@@ -1,4 +1,5 @@
 const express = require('express');
+const { v4: uuidv4 } = require('uuid');
 const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
@@ -7,15 +8,15 @@ app.use(express.static('public'));
 const PORT = process.env.PORT || 3000;
 
 let customerCount = 0;
-const customers = {};      // socketId → { socket, label, history, unread }
-let supportSocket = null;
-let supportSelected = null;
+const customers = {}; // userId → { socket, label, history, unread }
+
+let supportSocket = null,
+    supportSelected = null;
 
 io.on('connection', socket => {
-  const role = socket.handshake.query.role;
+  const { role, userId } = socket.handshake.query;
 
   if (role === 'support') {
-    // ==== SUPPORT ====
     supportSocket = socket;
     supportSelected = null;
     socket.emit('active-customers', listCustomers());
@@ -42,25 +43,34 @@ io.on('connection', socket => {
     });
 
   } else if (role === 'customer') {
-    // ==== CUSTOMER ====
-    customerCount++;
-    const label = `Customer ${customerCount}`;
-    customers[socket.id] = {
-      socket,
-      label,
-      history: [],
-      unread: 0
-    };
+    // Determine or assign persistent userId
+    let id = userId;
+    if (!id || !customers[id]) {
+      id = uuidv4();
+      customerCount++;
+      customers[id] = {
+        socket,
+        label: `Customer ${customerCount}`,
+        history: [],
+        unread: 0
+      };
+    } else {
+      // reconnect
+      customers[id].socket = socket;
+    }
+
+    // Tell client its userId
+    socket.emit('init', { userId: id, label: customers[id].label });
+
     broadcastCustomerList();
 
     socket.on('customer-message', message => {
-      const cust = customers[socket.id];
-      if (!cust) return;
+      const cust = customers[id];
       const entry = { from: cust.label, message };
       cust.history.push(entry);
 
       if (supportSocket) {
-        if (supportSelected === socket.id) {
+        if (supportSelected === id) {
           supportSocket.emit('receive-message', entry);
         } else {
           cust.unread++;
@@ -70,20 +80,22 @@ io.on('connection', socket => {
     });
 
     socket.on('disconnect', () => {
-      delete customers[socket.id];
+      // mark offline
+      customers[id].socket = null;
       broadcastCustomerList();
     });
 
   } else {
-    // DROP anything else
     socket.disconnect(true);
   }
 });
 
 function listCustomers() {
-  return Object.entries(customers).map(([id, c]) => ({
-    id, label: c.label, unread: c.unread
-  }));
+  return Object.entries(customers)
+    .filter(([,c]) => c.socket)           // only active
+    .map(([id, c]) => ({
+      id, label: c.label, unread: c.unread
+    }));
 }
 
 function broadcastCustomerList() {
