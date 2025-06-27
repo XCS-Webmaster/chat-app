@@ -74,23 +74,22 @@ body {
 }
 
 /* ===================== Bubble Styles ===================== */
-/* Wrapper for each bubble */
 .message {
   display: flex;
   align-items: center;
-  gap: 10px;             /* space between avatar and text */
   max-width: 80%;
   margin-bottom: 0.5em;
+  /* no background on wrapper */
 }
 
-/* Positioning */
 .message.customer {
-  align-self: flex-start;
   flex-direction: row;
+  align-self: flex-start;
 }
+
 .message.support {
-  align-self: flex-end;
   flex-direction: row-reverse;
+  align-self: flex-end;
 }
 
 /* Avatar */
@@ -104,21 +103,25 @@ body {
 
 /* Text bubble */
 .message .text {
-  display: inline-block;
   padding: 0.5em;
   border-radius: 10px;
   word-wrap: break-word;
-  max-width: 60vw;       /* never exceed 60% of viewport width */
-  background: #fff;
-  color: #000;
-  border: 1px solid #ccc;
+  max-width: calc(100% - 110px); /* account for avatar + gap */
+  font-size: 1em;
 }
 
-/* Support bubble styling */
+/* Customer bubble */
+.message.customer .text {
+  background: #3967d9;
+  color: #fff;
+  margin-left: 10px;
+}
+
+/* Support bubble */
 .message.support .text {
   background: #3967d9;
   color: #fff;
-  border: none;
+  margin-right: 10px;
 }
 
 /* ======================== Form ======================== */
