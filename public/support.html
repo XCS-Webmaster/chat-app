@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>XPRESS Support</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
   <div id="support-panel">
     <div id="sidebar"></div>
+
     <div id="chat-area">
-      <header><h2>XPRESS Support Dashboard</h2></header>
       <div id="messages"></div>
       <form id="form">
         <input id="input" type="text" placeholder="Type a message…" autocomplete="off"/>
@@ -22,14 +22,15 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io({ query: { role: 'support' } });
-    const sidebar = document.getElementById('sidebar'),
-          messages = document.getElementById('messages'),
-          form = document.getElementById('form'),
-          input = document.getElementById('input');
+    const sidebar  = document.getElementById('sidebar');
+    const messages = document.getElementById('messages');
+    const form     = document.getElementById('form');
+    const input    = document.getElementById('input');
     let selectedId = null,
-        origTitle = document.title,
-        flashInt = null;
+        origTitle  = document.title,
+        flashInt   = null;
 
+    // Render sidebar list
     socket.on('active-customers', list => {
       sidebar.innerHTML = '';
       list.forEach(c => {
@@ -47,18 +48,22 @@
       if (!selectedId) messages.innerHTML = '';
     });
 
+    // Load full history when switching
     socket.on('message-history', hist => {
       messages.innerHTML = '';
       hist.forEach(e => addMessage(e.from, e.message));
       clearFlash();
     });
 
+    // Incoming live message
     socket.on('receive-message', ({ from, message }) => {
       addMessage(from, message);
       if (!document.hasFocus()) startFlash();
-      clearUnread(from);
+      // reset unread count display
+      if (selectedId) socket.emit('select-customer', selectedId);
     });
 
+    // Send from support
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (!input.value || !selectedId) return;
@@ -67,6 +72,7 @@
       input.value = '';
     });
 
+    // Append one bubble
     function addMessage(from, text) {
       const isSup = from === 'Support';
       const div = document.createElement('div');
@@ -86,17 +92,11 @@
       messages.scrollTop = messages.scrollHeight;
     }
 
-    function clearUnread(label) {
-      // clear unread on that customer
-      if (selectedId) {
-        socket.emit('select-customer', selectedId);
-      }
-    }
-
+    // Title‐bar flash on new message
     function startFlash() {
       if (flashInt) return;
       flashInt = setInterval(() => {
-        document.title = document.title === origTitle ? '🔔 New Message' : origTitle;
+        document.title = document.title === origTitle ? '🔔 New Msg' : origTitle;
       }, 1000);
     }
 
@@ -110,3 +110,4 @@
   </script>
 </body>
 </html>
+```

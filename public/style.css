@@ -1,4 +1,17 @@
-/* ===== Base ===== */
+/* ==================== Base ==================== */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Tahoma, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction are the complete front-end files end-to-end—no “…” placeholders, everything in one shot. Just drop these into your `public/` folder (alongside your avatars) and they’ll run out of the box.
+
+---
+
+### public/style.css  
+```css
+/* ==================== Base ==================== */
 body {
   margin: 0;
   padding: 0;
@@ -8,14 +21,31 @@ body {
   flex-direction: column;
 }
 
-/* ===== Support Panel Layout ===== */
+/* =============== Support Panel Layout =============== */
 #support-panel {
   display: flex;
   height: 100vh;
   overflow: hidden;
 }
 
-/* ===== Sidebar ===== */
+/* ====================== Sidebar ====================== */
+#sidebar {
+  width: 220px;
+  background: #1e1e1e;
+  padding: 1em 0.5em;
+  box-sizing: border-box;
+  overflow-y: auto;
+  flex-shrink:: column;
+}
+
+/* =============== Support Panel Layout =============== */
+#support-panel {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ====================== Sidebar ====================== */
 #sidebar {
   width: 220px;
   background: #1e1e1e;
@@ -35,11 +65,25 @@ body {
   cursor: pointer;
   transition: background 0.3s;
 }
-
 #sidebar .customer:hover {
   background: #e52238;
 }
+#sidebar .customer-flash 0;
+}
 
+#sidebar .customer {
+  background: #3967d9;
+  color: #fff;
+  border-radius: 10px;
+  padding: 0.5em;
+  margin: 0.25em 0;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+#sidebar .customer:hover {
+  background: #e52238;
+}
 #sidebar .customer-flash {
   animation: flash 1s infinite;
 }
@@ -47,13 +91,12 @@ body {
   0%,100% { background: #3967d9; }
   50%     { background: #e52238; }
 }
-
 #sidebar .customer.selected {
   background: #e52238 !important;
   animation: none !important;
 }
 
-/* ===== Chat Area ===== */
+/* ====================== Chat Area ====================== */
 #chat-area {
   flex: 1;
   display: flex;
@@ -61,12 +104,59 @@ body {
   min-width: 0;
 }
 
-#chat-area header {
-  background: #3967d9;
-  color: white;
-  padding: 0.5em 1em;
+/* ---- Customer Header ---- */
+ {
+  animation: flash 1s infinite;
+}
+@keyframes flash {
+  0%,100% { background: #3967d9; }
+  50%     { background: #e52238; }
+}
+#sidebar .customer.selected {
+  background: #e52238 !important;
+  animation: none !important;
 }
 
+/* ====================== Chat Area ====================== */
+#chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ---- Customer Header ---- */
+#chat-area header {
+  background: #3967d9;
+  color: #fff;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0.75em 1em;
+}
+#chat-area header h2 {
+  margin: 0;
+  text-align: center;
+}
+
+/* ================ Messages Container ================ */
+#messages {
+  flex: 1;
+  display: flex;
+  flex-direction#chat-area header {
+  background: #3967d9;
+  color: #fff;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0.75em 1em;
+}
+#chat-area header h2 {
+  margin: 0;
+  text-align: center;
+}
+
+/* ================ Messages Container ================ */
 #messages {
   flex: 1;
   display: flex;
@@ -77,12 +167,38 @@ body {
   overflow-y: auto;
 }
 
-/* ===== Bubbles ===== */
+/* ===================== Bubbles ===================== */
 .message {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 0.5em;
+  max-width: 100%;
+  background: none;
+  cursor: default;
+}
+
+.message.customer {
+  align-self: flex-start;
+  flex-direction: row;
+}
+
+.message.support {
+  align-self: flex-end;
+  flex-direction: column;
+  gap: 0.5em;
+  padding: 1em;
+  background: #f4f4f4;
+  overflow-y: auto;
+}
+
+/* ===================== Bubbles ===================== */
+.message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0.5em;
+  max-width: 100%;
   background: none;
   cursor: default;
 }
@@ -102,15 +218,43 @@ body {
   height: 100px;
   border-radius: 50%;
   object-fit: cover;
+  flex-sh: row-reverse;
+}
+
+.message .avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
   flex-shrink: 0;
+  /* lazyrink: 0;
+  /* lazy load via attribute in HTML */
+}
+
+.message .text {
+  padding load via attribute in HTML */
 }
 
 .message .text {
   padding: 0.5em;
   border-radius: 10px;
+ : 0.5em;
+  border-radius: 10px;
   word-wrap: break-word;
   font-size: 1em;
-  max-width: calc(100% - 120px); /* virtually full width */
+  max-width word-wrap: break-word;
+  font-size: 1em;
+  max-width: calc(100% - 120px);
+}
+
+.message.customer .text {
+  background: #fff;
+  color: #000;
+  border: 1px solid #ccc;
+}
+
+.message.support .text {
+  background: #396: calc(100% - 120px);
 }
 
 .message.customer .text {
@@ -121,11 +265,12 @@ body {
 
 .message.support .text {
   background: #3967d9;
+  color: #fff7d9;
   color: #fff;
   border: none;
 }
 
-/* ===== Form ===== */
+/* ===================== Form ===================== */
 #form {
   display: flex;
   gap: 0.5em;
@@ -156,37 +301,31 @@ button {
   border-radius: 10px;
   transition: background 0.25s;
 }
-
 button:hover,
 button:active {
   background: #e52238;
 }
-
 button:focus {
   outline: none;
 }
 
-/* ===== Responsive ===== */
+/* ==================== Responsive ==================== */
 @media (max-width: 600px) {
   #support-panel {
     flex-direction: column;
   }
-
   #sidebar {
     width: 100%;
     display: flex;
     overflow-x: auto;
   }
-
   #sidebar .customer {
     flex: 1 0 auto;
     margin: 0.25em;
   }
-
   #form {
     flex-direction: column;
   }
-
   button {
     width: 100%;
   }
