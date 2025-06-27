@@ -7,8 +7,7 @@
   <link rel="stylesheet" href="/style.css"/>
 </head>
 <body>
-  <audio id="firstMsgAudio" preload="auto" src="/first-msg.mp3"></audio>
-  <audio id="notifyAudio"   preload="auto" src="/notify.mp3"></audio>
+  <audio id="notifyAudio" preload="auto" src="/notify.mp3"></audio>
 
   <div id="support-panel">
     <div id="sidebar"></div>
@@ -23,18 +22,13 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket        = io({ query: { role: 'support' } });
-    const sidebar       = document.getElementById('sidebar');
-    const messages      = document.getElementById('messages');
-    const form          = document.getElementById('form');
-    const input         = document.getElementById('input');
-    const firstMsgAudio = document.getElementById('firstMsgAudio');
-    const notifyAudio   = document.getElementById('notifyAudio');
-    let selectedId      = null;
-
-    function dayKey(id) {
-      return 'played_' + id + '_' + new Date().toISOString().slice(0,10);
-    }
+    const socket      = io({ query:{ role:'support' } });
+    const sidebar     = document.getElementById('sidebar');
+    const messages    = document.getElementById('messages');
+    const form        = document.getElementById('form');
+    const input       = document.getElementById('input');
+    const notifyAudio = document.getElementById('notifyAudio');
+    let selectedId    = null;
 
     socket.on('active-customers', list => {
       sidebar.innerHTML = '';
@@ -57,12 +51,7 @@
     });
 
     socket.on('receive-message', ({ id, from, message }) => {
-      const key = dayKey(id);
-      if (!localStorage.getItem(key)) {
-        firstMsgAudio.play().catch(()=>{});
-        localStorage.setItem(key, '1');
-      }
-      notifyAudio.play().catch(()=>{});
+      notifyAudio.play().catch(() => {});
       flashButton(id);
       if (id === selectedId) addMessage(from, message);
     });
@@ -70,8 +59,12 @@
     form.onsubmit = e => {
       e.preventDefault();
       if (!input.value || !selectedId) return;
-      socket.emit('support-message', { to: selectedId, message: input.value });
+      socket.emit('support-message', {
+        to: selectedId,
+        message: input.value
+      });
       addMessage('Support', input.value);
+      notifyAudio.play().catch(() => {});
       input.value = '';
       form.querySelector('button').blur();
     };
@@ -79,9 +72,6 @@
     function selectCustomer(btn) {
       selectedId = btn.dataset.id;
       socket.emit('select-customer', selectedId);
-      firstMsgAudio.pause();
-      firstMsgAudio.currentTime = 0;
-      localStorage.removeItem(dayKey(selectedId));
       clearFlashes();
       btn.classList.add('selected');
     }
@@ -95,24 +85,32 @@
     }
 
     function clearFlashes() {
-      Array.from(sidebar.children).forEach(b => b.classList.remove('customer-flash'));
+      Array.from(sidebar.children).forEach(b =>
+        b.classList.remove('customer-flash')
+      );
     }
 
     function addMessage(from, text) {
-      const div = document.createElement('div');
-      div.className = 'message ' + (from === 'Support' ? 'support' : 'customer');
-      const ac = document.createElement('div');
+      const isSup = from === 'Support';
+      const div   = document.createElement('div');
+      div.className = 'message ' + (isSup ? 'support' : 'customer');
+
+      const ac     = document.createElement('div');
       ac.className = 'avatar-container';
-      const name = document.createElement('div');
+      const name   = document.createElement('div');
       name.className = 'name';
       name.textContent = from;
       const avatar = document.createElement('img');
       avatar.className = 'avatar';
-      avatar.src = from === 'Support' ? 'support-avatar.png' : 'customer-avatar.png';
+      avatar.src     = isSup
+        ? 'support-avatar.png'
+        : 'customer-avatar.png';
       ac.append(name, avatar);
+
       const bubble = document.createElement('div');
       bubble.className = 'text';
       bubble.textContent = text;
+
       div.append(ac, bubble);
       messages.append(div);
       messages.scrollTop = messages.scrollHeight;

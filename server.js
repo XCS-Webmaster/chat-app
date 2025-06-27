@@ -34,7 +34,7 @@ io.on('connection', socket => {
       if (!c) return;
       const entry = { from: 'Support', message };
       c.history.push(entry);
-      c.socket?.emit('receive-message', { from: 'Support', message });
+      c.socket.emit('receive-message', { from: 'Support', message });
     });
 
   } else if (role === 'customer') {
@@ -60,7 +60,9 @@ io.on('connection', socket => {
       const entry = { from: c.label, message };
       c.history.push(entry);
       c.unread++;
-      io.to('support').emit('receive-message', { id, from: c.label, message });
+      io.to('support').emit('receive-message', {
+        id, from: c.label, message
+      });
       io.to('support').emit('active-customers', listCustomers());
     });
 
@@ -75,11 +77,13 @@ io.on('connection', socket => {
 });
 
 function listCustomers() {
-  return Object.entries(customers).map(([id, c]) => ({
-    id,
-    label: c.label,
-    unread: c.unread
-  }));
+  return Object.entries(customers)
+    .filter(([, c]) => c.socket && c.socket.connected)
+    .map(([id, c]) => ({
+      id,
+      label: c.label,
+      unread: c.unread
+    }));
 }
 
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
