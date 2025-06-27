@@ -1,7 +1,6 @@
 {
   "name": "xpress-live-chat",
   "version": "1.0.0",
-  "description": "XPRESS real‐time chat with persistence and title flash",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
