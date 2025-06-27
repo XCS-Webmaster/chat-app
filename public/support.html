@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <!-- Preload sounds -->
   <audio id="notifySound" preload="auto" src="/notify.mp3"></audio>
   <audio id="firstSound" preload="auto" src="/first-msg.mp3" loop></audio>
 
@@ -33,6 +32,8 @@
     const firstAudio    = document.getElementById('firstSound');
     const seenIds       = new Set();
     let selectedId      = null;
+    let sidebarReady    = false;
+    const queuedReceives = [];
 
     socket.on('active-customers', customers => {
       sidebar.innerHTML = '';
@@ -48,6 +49,12 @@
         btn.onclick = () => selectCustomer(btn);
         sidebar.appendChild(btn);
       });
+
+      sidebarReady = true;
+      while (queuedReceives.length) {
+        handleReceive(queuedReceives.shift());
+      }
+
       updateFirstAudioState();
     });
 
@@ -56,7 +63,15 @@
       hist.forEach(({ from, message }) => addMessage(from, message));
     });
 
-    socket.on('receive-message', ({ id, from, message }) => {
+    socket.on('receive-message', data => {
+      if (!sidebarReady) {
+        queuedReceives.push(data);
+      } else {
+        handleReceive(data);
+      }
+    });
+
+    function handleReceive({ id, from, message }) {
       const isSelected = (id === selectedId);
       const isNewCustomer = !seenIds.has(id);
       const btn = [...sidebar.children].find(b => b.dataset.id === id);
@@ -76,7 +91,7 @@
 
       if (isSelected) addMessage(from, message);
       updateFirstAudioState();
-    });
+    }
 
     form.onsubmit = e => {
       e.preventDefault();
