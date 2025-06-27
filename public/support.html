@@ -53,8 +53,15 @@
       hist.forEach(e => addMessage(e.from, e.message));
     });
 
-    socket.on('receive-message', ({ from, message }) => {
-      addMessage(from, message);
+    socket.on('incoming-message', ({ id, from, message }) => {
+      const btn = Array.from(sidebar.children)
+        .find(b => b.dataset.id === id);
+      if (btn && id !== selectedId) {
+        btn.classList.add('customer-flash');
+      }
+      if (id === selectedId) {
+        addMessage(from, message);
+      }
     });
 
     form.addEventListener('submit', e => {

@@ -65,10 +65,10 @@ io.on('connection', socket => {
       const c = customers[id];
       const entry = { from: c.label, message };
       c.history.push(entry);
+
       if (supportSocket) {
-        if (supportSelected === id) {
-          supportSocket.emit('receive-message', entry);
-        } else {
+        supportSocket.emit('incoming-message', { id, from: c.label, message });
+        if (supportSelected !== id) {
           c.unread++;
           broadcastCustomers();
         }
