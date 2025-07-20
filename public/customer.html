@@ -5,9 +5,37 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Chat</title>
   <link rel="stylesheet" href="/style.css"/>
+  <!-- Close-button styling to match your mini-cart X -->
+  <style>
+    :root {
+      --color-blue: #3967d9;
+      --color-red:  #e52238;
+    }
+
+    #chatCloseBtn {
+      position: absolute;
+      top: 0.5rem;
+      right: 1rem;
+      font-size: 2rem;
+      line-height: 1;
+      background: none;
+      border: none;
+      color: var(--color-blue);
+      cursor: pointer;
+      transition: color 0.3s ease;
+      z-index: 1000;
+    }
+
+    #chatCloseBtn:hover {
+      color: var(--color-red);
+    }
+  </style>
 </head>
 <body>
   <audio id="notify" preload="auto" src="/notify.mp3"></audio>
+
+  <!-- Close button in top‐right -->
+  <button id="chatCloseBtn" onclick="window.parent.postMessage('closeChat','*')">✖</button>
 
   <div id="chat-area">
     <div id="messages"></div>
