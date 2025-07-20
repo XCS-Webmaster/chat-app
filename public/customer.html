@@ -26,16 +26,24 @@
     const messages  = document.getElementById('messages');
     const notify    = document.getElementById('notify');
 
+    // Save your assigned userId
     socket.on('init', data => {
       userId = data.userId;
       localStorage.setItem('userId', userId);
     });
 
+    // Send a welcome message from "Support" when the connection opens
+    socket.on('connect', () => {
+      addMessage('Support', 'Welcome to Xpress Computer Solutions, how can I help you?');
+    });
+
+    // Incoming messages from support or echoes of your own
     socket.on('receive-message', ({ from, message }) => {
       playNotify();
       addMessage(from, message);
     });
 
+    // Your message form
     form.onsubmit = e => {
       e.preventDefault();
       if (!input.value) return;
@@ -76,3 +84,4 @@
   </script>
 </body>
 </html>
+```
