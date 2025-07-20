@@ -1,118 +1,117 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Chat</title>
-  <link rel="stylesheet" href="/style.css"/>
-</head>
-<body>
-  <audio id="notify" preload="auto" src="/notify.mp3"></audio>
+<!-- Chat Overlay -->
+<div id="chatOverlay"></div>
 
-  <div id="chat-area">
-    <div id="messages"></div>
-    <form id="form">
-      <input id="input" type="text" placeholder="Type your message…" autocomplete="off"/>
-      <button type="submit">Send</button>
-    </form>
+<!-- Chat Popup -->
+<div id="chatPopup">
+  <button id="chatCloseBtn" onclick="closeChat()">✖</button>
+
+  <!-- Header -->
+  <div id="chatHeader">
+    <h2>Chat with Support</h2>
+    <hr style="border: none; border-top: 3px solid #3967d9; margin: 1rem 0;" />
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-  (function() {
-    // Element refs
-    const form     = document.getElementById('form');
-    const input    = document.getElementById('input');
-    const messages = document.getElementById('messages');
-    const notify   = document.getElementById('notify');
+  <!-- Iframe -->
+  <iframe
+    src="https://chat-app-7437.onrender.com/customer.html"
+    title="Live Chat"
+  ></iframe>
+</div>
 
-    // Helper: append a chat bubble
-    function addMessage(from, text) {
-      const isSup  = from === 'Support';
-      const div    = document.createElement('div');
-      div.className = 'message ' + (isSup ? 'support' : 'customer');
+<style>
+  /* bring in Roboto */
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
-      const ac     = document.createElement('div');
-      ac.className = 'avatar-container';
-      const name   = document.createElement('div');
-      name.className = 'name';
-      name.textContent = from;
-      const avatar = document.createElement('img');
-      avatar.className = 'avatar';
-      avatar.src = isSup ? 'support-avatar.png' : 'customer-avatar.png';
-      ac.append(name, avatar);
+  :root {
+    --color-blue: #3967d9;
+    --color-red:  #e52238;
+    --color-text: #222;
+    --color-bg:   #fff;
+    --font-family: 'Roboto', sans-serif;
+  }
 
-      const bubble = document.createElement('div');
-      bubble.className = 'text';
-      bubble.textContent = text;
+  /* global panel font */
+  #chatPopup,
+  #chatPopup * {
+    font-family: var(--font-family) !important;
+  }
 
-      div.append(ac, bubble);
-      messages.append(div);
-      messages.scrollTop = messages.scrollHeight;
+  /* header */
+  #chatHeader h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: normal; /* unbolded */
+    color: var(--color-text);
+    text-align: center;
+  }
+
+  /* close button like cart's X */
+  #chatCloseBtn {
+    position: absolute;
+    top: 0.5rem;
+    right: 1rem;
+    font-size: 2rem;
+    background: none;
+    border: none;
+    color: var(--color-blue);
+    cursor: pointer;
+    transition: color 0.3s ease;
+    line-height: 1;
+  }
+  #chatCloseBtn:hover {
+    color: var(--color-red);
+  }
+
+  /* overlay */
+  #chatOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9998;
+  }
+  #chatOverlay.open {
+    display: block;
+  }
+
+  /* panel */
+  #chatPopup {
+    position: fixed;
+    bottom: 120px;
+    right: -100%;
+    width: 360px;
+    height: 500px;
+    background: var(--color-bg);
+    box-shadow: -5px 0 15px rgba(0,0,0,0.25);
+    color: var(--color-text);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    transition: right 0.4s ease;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    overflow: hidden;
+  }
+  #chatPopup.open {
+    right: 20px;
+  }
+
+  /* iframe body fill */
+  #chatPopup iframe {
+    flex: 1;
+    border: none;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Responsive */
+  @media (max-width: 599px) {
+    #chatPopup {
+      width: 90%;
+      height: 80%;
     }
-
-    // Helper: play notification sound
-    function playNotify() {
-      notify.currentTime = 0;
-      notify.play().catch(()=>{});
+    #chatPopup.open {
+      right: 5%;
     }
-
-    // Business hours: Mon–Sat 9–18 CT
-    function isSupportOpen() {
-      const now      = new Date();
-      const chicago  = new Date(
-        now.toLocaleString('en-US', { timeZone: 'America/Chicago' })
-      );
-      const day  = chicago.getDay();   // 0=Sun,1=Mon…6=Sat
-      const hour = chicago.getHours(); // 0–23
-      return day >= 1 && day <= 6 && hour >= 9 && hour < 18;
-    }
-
-    // If closed, show closed message + route form to email
-    if (!isSupportOpen()) {
-      addMessage('Support', "Sorry, we're currently closed. Please leave a message.");
-      form.onsubmit = e => {
-        e.preventDefault();
-        if (!input.value) return;
-        addMessage('Customer', input.value);
-        const mailto = 
-          'mailto:customerservice@xpresscomputersolutions.com'
-          + '?subject=' + encodeURIComponent('After-hours support message')
-          + '&body='    + encodeURIComponent(input.value);
-        window.location.href = mailto;
-        input.value = '';
-        form.querySelector('button').blur();
-      };
-      return; // skip socket.io entirely
-    }
-
-    // During open hours, initialize Socket.IO
-    let userId = localStorage.getItem('userId');
-    const socket = io({ query: { role: 'customer', userId: userId || '' } });
-
-    socket.on('init', data => {
-      userId = data.userId;
-      localStorage.setItem('userId', userId);
-    });
-
-    socket.on('connect', () => {
-      addMessage('Support', 'Welcome to Xpress Computer Solutions, how can I help you?');
-    });
-
-    socket.on('receive-message', ({ from, message }) => {
-      playNotify();
-      addMessage(from, message);
-    });
-
-    form.onsubmit = e => {
-      e.preventDefault();
-      if (!input.value) return;
-      socket.emit('customer-message', input.value);
-      addMessage('Customer', input.value);
-      input.value = '';
-      form.querySelector('button').blur();
-    };
-  })();
-  </script>
-</body>
-</html>
+  }
+</style>
