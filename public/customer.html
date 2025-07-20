@@ -6,37 +6,32 @@
   <title>Chat</title>
   <link rel="stylesheet" href="/style.css"/>
 
-  <!-- Close-button styling to match your mini-cart’s X -->
   <style>
     :root {
       --color-blue: #3967d9;
       --color-red:  #e52238;
     }
 
-    /* Style the ✖ exactly like your cart’s close icon */
-    #chatCloseBtn {
-      position: absolute;
-      top: 0.5rem;
-      right: 1rem;
-      font-size: 2rem;
-      line-height: 1;
-      background: none;
-      border: none;
-      color: var(--color-blue);
-      cursor: pointer;
-      transition: color 0.3s ease;
-      z-index: 1000;
-    }
-    #chatCloseBtn:hover {
-      color: var(--color-red);
+    /* Hide all possible close/remove "X" elements */
+    #chatCloseBtn,
+    .chat-close,
+    .close-button,
+    button[aria-label="Close"],
+    button[title="Close"],
+    a.remove,
+    .remove,
+    .widget_shopping_cart .remove,
+    .woocommerce-mini-cart__close,
+    .woocommerce-mini-cart .remove {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
     }
   </style>
 </head>
 <body>
   <audio id="notify" preload="auto" src="/notify.mp3"></audio>
-
-  <!-- Close button -->
-  <button id="chatCloseBtn" onclick="window.parent.postMessage('closeChat','*')">✖</button>
 
   <div id="chat-area">
     <div id="messages"></div>
@@ -49,13 +44,11 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
   (function() {
-    // Element refs
     const form     = document.getElementById('form');
     const input    = document.getElementById('input');
     const messages = document.getElementById('messages');
     const notify   = document.getElementById('notify');
 
-    // Helper: append a chat bubble
     function addMessage(from, text) {
       const isSup  = from === 'Support';
       const div    = document.createElement('div');
@@ -80,24 +73,21 @@
       messages.scrollTop = messages.scrollHeight;
     }
 
-    // Helper: play notification sound
     function playNotify() {
       notify.currentTime = 0;
       notify.play().catch(()=>{});
     }
 
-    // Business hours: Mon–Sat 9–18 CT
     function isSupportOpen() {
       const now      = new Date();
       const chicago  = new Date(
         now.toLocaleString('en-US', { timeZone: 'America/Chicago' })
       );
-      const day  = chicago.getDay();   // 0=Sun,1=Mon…6=Sat
-      const hour = chicago.getHours(); // 0–23
+      const day  = chicago.getDay();
+      const hour = chicago.getHours();
       return day >= 1 && day <= 6 && hour >= 9 && hour < 18;
     }
 
-    // If closed, show closed message + route form to email
     if (!isSupportOpen()) {
       addMessage('Support', "Sorry, we're currently closed. Please leave a message.");
       form.onsubmit = e => {
@@ -112,10 +102,9 @@
         input.value = '';
         form.querySelector('button').blur();
       };
-      return; // skip socket.io entirely
+      return;
     }
 
-    // During open hours, initialize Socket.IO
     let userId = localStorage.getItem('userId');
     const socket = io({ query: { role: 'customer', userId: userId || '' } });
 
