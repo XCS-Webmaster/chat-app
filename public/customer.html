@@ -12,7 +12,7 @@
       --color-red:  #e52238;
     }
 
-    /* Hide all possible close/remove "X" elements */
+    /* Hide all possible rogue close/remove buttons */
     #chatCloseBtn,
     .chat-close,
     .close-button,
@@ -24,21 +24,135 @@
     .woocommerce-mini-cart__close,
     .woocommerce-mini-cart .remove {
       display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
+    }
+
+    /* Slide-in chat container fixed to bottom right */
+    #chat-panel {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      width: 350px;
+      max-width: 100%;
+      height: 500px;
+      background: #fff;
+      border-left: 1px solid #ddd;
+      border-top: 1px solid #ddd;
+      box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+      transform: translateX(0);
+      transition: transform 0.3s ease-in-out;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Chat content styling */
+    #chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      overflow: hidden;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+    }
+
+    #form {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    #input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    #form button {
+      padding: 10px 16px;
+      background-color: var(--color-blue);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    #form button:hover {
+      background-color: var(--color-red);
+    }
+
+    /* Message bubbles */
+    .message {
+      margin-bottom: 0.75rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+
+    .message.support .text {
+      background: #f0f0f0;
+      color: #222;
+    }
+
+    .message.customer .text {
+      background: #3967d9;
+      color: white;
+      margin-left: auto;
+    }
+
+    .text {
+      padding: 10px 14px;
+      border-radius: 10px;
+      max-width: 80%;
+    }
+
+    .avatar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+    }
+
+    .name {
+      font-size: 0.75rem;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      #chat-panel {
+        width: 100%;
+        height: 60%;
+        right: 0;
+        left: 0;
+        bottom: 0;
+      }
     }
   </style>
 </head>
 <body>
   <audio id="notify" preload="auto" src="/notify.mp3"></audio>
 
-  <div id="chat-area">
-    <div id="messages"></div>
-    <form id="form">
-      <input id="input" type="text" placeholder="Type your message…" autocomplete="off"/>
-      <button type="submit">Send</button>
-    </form>
+  <!-- Chat panel fixed to screen edge -->
+  <div id="chat-panel">
+    <div id="chat-area">
+      <div id="messages"></div>
+      <form id="form">
+        <input id="input" type="text" placeholder="Type your message…" autocomplete="off"/>
+        <button type="submit">Send</button>
+      </form>
+    </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
