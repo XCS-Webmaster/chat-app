@@ -19,48 +19,30 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    let userId      = localStorage.getItem('userId');
-    const socket    = io({ query: { role:'customer', userId: userId || '' } });
-    const form      = document.getElementById('form');
-    const input     = document.getElementById('input');
-    const messages  = document.getElementById('messages');
-    const notify    = document.getElementById('notify');
-
-    // Save your assigned userId
-    socket.on('init', data => {
-      userId = data.userId;
-      localStorage.setItem('userId', userId);
-    });
-
-    // Send a welcome message from "Support" when the connection opens
-    socket.on('connect', () => {
-      addMessage('Support', 'Welcome to Xpress Computer Solutions, how can I help you?');
-    });
-
-    // Incoming messages from support or echoes of your own
-    socket.on('receive-message', ({ from, message }) => {
-      playNotify();
-      addMessage(from, message);
-    });
-
-    // Your message form
-    form.onsubmit = e => {
-      e.preventDefault();
-      if (!input.value) return;
-      socket.emit('customer-message', input.value);
-      addMessage('Customer', input.value);
-      input.value = '';
-      form.querySelector('button').blur();
-    };
-
-    function playNotify() {
-      notify.currentTime = 0;
-      notify.play().catch(() => {});
+    // -- time & hours logic -----------------------------------------
+    function isSupportOpen() {
+      // get current time in America/Chicago (Central Time)
+      const now = new Date();
+      const central = new Date(
+        now.toLocaleString("en-US", { timeZone: "America/Chicago" })
+      );
+      const day = central.getDay();       // 0=Sun,1=Mon…6=Sat
+      const hour = central.getHours();    // 0–23
+      // open Mon–Sat (1–6), between 9:00 (inclusive) and 18:00 (exclusive)
+      return day >= 1 && day <= 6 && hour >= 9 && hour < 18;
     }
 
+    // -- initial setup -----------------------------------------------
+    let userId     = localStorage.getItem('userId');
+    const form     = document.getElementById('form');
+    const input    = document.getElementById('input');
+    const messages = document.getElementById('messages');
+    const notify   = document.getElementById('notify');
+
+    // function to append a chat bubble
     function addMessage(from, text) {
-      const isSup  = from === 'Support';
-      const div    = document.createElement('div');
+      const isSup = from === 'Support';
+      const div   = document.createElement('div');
       div.className = 'message ' + (isSup ? 'support' : 'customer');
 
       const ac     = document.createElement('div');
@@ -81,7 +63,54 @@
       messages.append(div);
       messages.scrollTop = messages.scrollHeight;
     }
+
+    // -- After-hours flow --------------------------------------------
+    if (!isSupportOpen()) {
+      // show closed message
+      addMessage('Support', "Sorry, we're currently closed. Please leave a message.");
+      // override form to email you
+      form.onsubmit = e => {
+        e.preventDefault();
+        if (!input.value) return;
+        addMessage('Customer', input.value);
+        // craft mailto to your support address
+        const mailTo = 'mailto:support@xpresscomputersolutions.com'
+                     + '?subject=' + encodeURIComponent('After-hours support message')
+                     + '&body='    + encodeURIComponent(input.value);
+        // open default mail client
+        window.location.href = mailTo;
+        input.value = '';
+      };
+      // no socket connection needed when closed
+      return;
+    }
+
+    // -- Normal (open-hours) chat setup ------------------------------
+    const socket = io({ query: { role:'customer', userId: userId || '' } });
+
+    socket.on('init', data => {
+      userId = data.userId;
+      localStorage.setItem('userId', userId);
+    });
+
+    socket.on('connect', () => {
+      addMessage('Support', 'Welcome to Xpress Computer Solutions, how can I help you?');
+    });
+
+    socket.on('receive-message', ({ from, message }) => {
+      notify.currentTime = 0;
+      notify.play().catch(() => {});
+      addMessage(from, message);
+    });
+
+    form.onsubmit = e => {
+      e.preventDefault();
+      if (!input.value) return;
+      socket.emit('customer-message', input.value);
+      addMessage('Customer', input.value);
+      input.value = '';
+      form.querySelector('button').blur();
+    };
   </script>
 </body>
 </html>
-<c>Powered by Xpress Computer Solutions LLC</c>
