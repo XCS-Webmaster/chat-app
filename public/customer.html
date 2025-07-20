@@ -1,4 +1,9 @@
-<title>Chat</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Chat</title>
   <link rel="stylesheet" href="/style.css"/>
 
   <!-- Close-button styling to match your mini-cart’s X -->
@@ -24,21 +29,6 @@
     }
     #chatCloseBtn:hover {
       color: var(--color-red);
-    /* Hide all possible close/remove "X" elements */
-    #chatCloseBtn,
-    .chat-close,
-    .close-button,
-    button[aria-label="Close"],
-    button[title="Close"],
-    a.remove,
-    .remove,
-    .widget_shopping_cart .remove,
-    .woocommerce-mini-cart__close,
-    .woocommerce-mini-cart .remove {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
     }
   </style>
 </head>
@@ -51,7 +41,11 @@
   <div id="chat-area">
     <div id="messages"></div>
     <form id="form">
-@@ -49,13 +44,11 @@
+      <input id="input" type="text" placeholder="Type your message…" autocomplete="off"/>
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
   <script src="/socket.io/socket.io.js"></script>
   <script>
   (function() {
@@ -65,7 +59,24 @@
     function addMessage(from, text) {
       const isSup  = from === 'Support';
       const div    = document.createElement('div');
-@@ -80,24 +73,21 @@
+      div.className = 'message ' + (isSup ? 'support' : 'customer');
+
+      const ac     = document.createElement('div');
+      ac.className = 'avatar-container';
+      const name   = document.createElement('div');
+      name.className = 'name';
+      name.textContent = from;
+      const avatar = document.createElement('img');
+      avatar.className = 'avatar';
+      avatar.src = isSup ? 'support-avatar.png' : 'customer-avatar.png';
+      ac.append(name, avatar);
+
+      const bubble = document.createElement('div');
+      bubble.className = 'text';
+      bubble.textContent = text;
+
+      div.append(ac, bubble);
+      messages.append(div);
       messages.scrollTop = messages.scrollHeight;
     }
 
@@ -83,8 +94,6 @@
       );
       const day  = chicago.getDay();   // 0=Sun,1=Mon…6=Sat
       const hour = chicago.getHours(); // 0–23
-      const day  = chicago.getDay();
-      const hour = chicago.getHours();
       return day >= 1 && day <= 6 && hour >= 9 && hour < 18;
     }
 
@@ -92,14 +101,47 @@
     if (!isSupportOpen()) {
       addMessage('Support', "Sorry, we're currently closed. Please leave a message.");
       form.onsubmit = e => {
-@@ -112,10 +102,9 @@
+        e.preventDefault();
+        if (!input.value) return;
+        addMessage('Customer', input.value);
+        const mailto = 
+          'mailto:support@xpresscomputersolutions.com'
+          + '?subject=' + encodeURIComponent('After-hours support message')
+          + '&body='    + encodeURIComponent(input.value);
+        window.location.href = mailto;
         input.value = '';
         form.querySelector('button').blur();
       };
       return; // skip socket.io entirely
-      return;
     }
 
     // During open hours, initialize Socket.IO
     let userId = localStorage.getItem('userId');
     const socket = io({ query: { role: 'customer', userId: userId || '' } });
+
+    socket.on('init', data => {
+      userId = data.userId;
+      localStorage.setItem('userId', userId);
+    });
+
+    socket.on('connect', () => {
+      addMessage('Support', 'Welcome to Xpress Computer Solutions, how can I help you?');
+    });
+
+    socket.on('receive-message', ({ from, message }) => {
+      playNotify();
+      addMessage(from, message);
+    });
+
+    form.onsubmit = e => {
+      e.preventDefault();
+      if (!input.value) return;
+      socket.emit('customer-message', input.value);
+      addMessage('Customer', input.value);
+      input.value = '';
+      form.querySelector('button').blur();
+    };
+  })();
+  </script>
+</body>
+</html>
